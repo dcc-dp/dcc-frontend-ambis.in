@@ -1,35 +1,87 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useHermesAgent } from '../hooks/useHermesAgent';
 import {
   SparklesIcon,
+  BrainIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  CpuIcon,
-  WrenchIcon,
+  SendIcon,
   SquareIcon,
   RotateCcwIcon,
-  SendIcon,
+  LightbulbIcon,
   BookOpenIcon,
   HelpCircleIcon,
-  LayersIcon,
-  AlertCircleIcon,
-  LightbulbIcon,
+  CheckCircleIcon,
+  SmileIcon,
 } from './Icons';
 
-const SCAFFOLD_LEVELS = [
-  { level: 1, name: 'Level 1: Hint', desc: 'Petunjuk arah logika dasar', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' },
-  { level: 2, name: 'Level 2: Guiding Question', desc: 'Pertanyaan pemandu reflektif', color: 'bg-blue-500/10 text-blue-400 border-blue-500/30' },
-  { level: 3, name: 'Level 3: Concept Explanation', desc: 'Penjelasan ulang konsep kunci', color: 'bg-amber-500/10 text-amber-400 border-amber-500/30' },
-  { level: 4, name: 'Level 4: Worked Example', desc: 'Contoh analogi langkah demi langkah', color: 'bg-purple-500/10 text-purple-400 border-purple-500/30' },
-  { level: 5, name: 'Level 5: Full Solution', desc: 'Solusi lengkap & pembahasan', color: 'bg-rose-500/10 text-rose-400 border-rose-500/30' },
+interface ScaffoldOption {
+  level: number;
+  emoji: string;
+  title: string;
+  subtitle: string;
+  color: string;
+  activeColor: string;
+}
+
+const SCAFFOLD_OPTIONS: ScaffoldOption[] = [
+  {
+    level: 1,
+    emoji: '💡',
+    title: 'Clue Aja',
+    subtitle: 'Kasih petunjuk kecil, aku mau coba mikir sendiri',
+    color: 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10',
+    activeColor: 'bg-emerald-500 text-zinc-950 font-semibold shadow-lg shadow-emerald-500/20 border-emerald-400',
+  },
+  {
+    level: 2,
+    emoji: '🤔',
+    title: 'Bimbing Langkah',
+    subtitle: 'Tuntun aku lewat pertanyaan bertahap',
+    color: 'border-blue-500/30 text-blue-300 bg-blue-500/10',
+    activeColor: 'bg-blue-500 text-zinc-950 font-semibold shadow-lg shadow-blue-500/20 border-blue-400',
+  },
+  {
+    level: 3,
+    emoji: '📖',
+    title: 'Jelasin Konsep',
+    subtitle: 'Terangkan materi & rumus dasarnya dulu',
+    color: 'border-amber-500/30 text-amber-300 bg-amber-500/10',
+    activeColor: 'bg-amber-500 text-zinc-950 font-semibold shadow-lg shadow-amber-500/20 border-amber-400',
+  },
+  {
+    level: 4,
+    emoji: '📝',
+    title: 'Contoh Mirip',
+    subtitle: 'Beri contoh soal serupa biar aku paham polanya',
+    color: 'border-purple-500/30 text-purple-300 bg-purple-500/10',
+    activeColor: 'bg-purple-500 text-zinc-950 font-semibold shadow-lg shadow-purple-500/20 border-purple-400',
+  },
+  {
+    level: 5,
+    emoji: '🎯',
+    title: 'Bahas Tuntas',
+    subtitle: 'Jelaskan cara lengkap langkah demi langkah',
+    color: 'border-rose-500/30 text-rose-300 bg-rose-500/10',
+    activeColor: 'bg-rose-500 text-zinc-950 font-semibold shadow-lg shadow-rose-500/20 border-rose-400',
+  },
 ];
 
-const PRESET_PROMPTS = [
-  { label: 'Matematika - Aljabar', text: 'Bagaimana cara menyelesaikan persamaan linear 3x + 6 = 18?' },
-  { label: 'Matematika - Pecahan', text: 'Aku bingung menjumlahkan 1/2 + 1/3, kenapa bukan 2/5?' },
-  { label: 'Informatika - Logika', text: 'Jelaskan konsep perulangan (loop) sederhana untuk pemula kelas 7.' },
+const SUGGESTED_QUESTIONS = [
+  {
+    topic: '🔢 Aljabar',
+    text: 'Bagaimana cara menyelesaikan persamaan linear 3x + 6 = 18?',
+  },
+  {
+    topic: '🍕 Pecahan',
+    text: 'Aku bingung menjumlahkan 1/2 + 1/3, kenapa jawabannya bukan 2/5?',
+  },
+  {
+    topic: '💻 Informatika',
+    text: 'Jelaskan konsep perulangan (loop) sederhana untuk siswa kelas 7.',
+  },
 ];
 
 export default function HermesAgentPlayground() {
@@ -47,295 +99,397 @@ export default function HermesAgentPlayground() {
   } = useHermesAgent();
 
   const [inputPrompt, setInputPrompt] = useState('');
-  const [activeMode, setActiveMode] = useState<'ask' | 'learning_path' | 'productivity_task'>('ask');
+  const [activeMode, setActiveMode] = useState<'ask' | 'learning_path'>('ask');
   const [selectedLevel, setSelectedLevel] = useState<number>(2);
-  const [showThinking, setShowThinking] = useState<boolean>(true);
+  const [submittedQuestion, setSubmittedQuestion] = useState<string | null>(null);
+  const [showThinkingDetail, setShowThinkingDetail] = useState<boolean>(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputPrompt.trim() || isStreaming) return;
-    sendPrompt(inputPrompt, activeMode, { scaffold_level: selectedLevel });
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (chatEndRef.current && (content || isThinking)) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [content, isThinking]);
+
+  const handleSend = (textToSend?: string) => {
+    const query = (textToSend || inputPrompt).trim();
+    if (!query || isStreaming) return;
+
+    setSubmittedQuestion(query);
+    sendPrompt(query, activeMode, {
+      scaffold_level: selectedLevel,
+      current_topic: 'Bimbingan Siswa Kelas VII',
+    });
+    if (!textToSend) {
+      setInputPrompt('');
+    }
   };
 
-  const handleSelectPreset = (text: string) => {
-    setInputPrompt(text);
-  };
-
-  const currentScaffoldInfo = SCAFFOLD_LEVELS.find((s) => s.level === scaffoldLevel) || SCAFFOLD_LEVELS[0];
+  const activeLevelConfig =
+    SCAFFOLD_OPTIONS.find((s) => s.level === scaffoldLevel) || SCAFFOLD_OPTIONS[1];
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800">
+    <div className="w-full flex flex-col min-h-[calc(100vh-140px)] max-w-2xl mx-auto pb-28 sm:pb-32 px-3 sm:px-4">
+      {/* 1. Header Profile: Kak Ambis Tutor */}
+      <div className="bg-zinc-900/90 backdrop-blur-md border border-zinc-800/80 rounded-2xl p-4 mb-4 shadow-sm flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-400 shadow-sm">
-            <SparklesIcon className="w-6 h-6 animate-pulse" />
+          <div className="relative">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-indigo-500/20">
+              🤖
+            </div>
+            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-zinc-900 rounded-full animate-pulse" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-zinc-100 flex items-center gap-2">
-              Hermes Agent Studio
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 font-medium font-mono">
-                SSE Live Stub
+            <div className="flex items-center gap-2">
+              <h2 className="font-bold text-zinc-100 text-base sm:text-lg">Kak Ambis</h2>
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 font-medium">
+                Tutor AI Kelas VII
               </span>
-            </h2>
+            </div>
             <p className="text-xs text-zinc-400">
-              Personal Productivity & 5-Level Adaptive Scaffolding Playground (Ambis.in)
+              Prinsip: &ldquo;Bantu kamu paham, bukan cuma kasih contekan&rdquo; ✨
             </p>
           </div>
         </div>
 
-        {/* Active Scaffolding Level Badge */}
-        <div className="flex items-center gap-2">
-          <div className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-all ${currentScaffoldInfo.color}`}>
-            <LayersIcon className="w-3.5 h-3.5" />
-            <span>Aktif: {currentScaffoldInfo.name}</span>
-          </div>
+        {/* Mode Selector Mobile Pill */}
+        <div className="flex items-center bg-zinc-950 border border-zinc-800 rounded-xl p-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => setActiveMode('ask')}
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
+              activeMode === 'ask'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            <HelpCircleIcon className="w-3.5 h-3.5" />
+            <span>Tanya PR</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveMode('learning_path')}
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
+              activeMode === 'learning_path'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            <BookOpenIcon className="w-3.5 h-3.5" />
+            <span>Rute Belajar</span>
+          </button>
         </div>
       </div>
 
-      {/* Control Bar: Mode & Scaffolding Selector */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Mode Selector */}
-        <div className="bg-zinc-900/60 backdrop-blur border border-zinc-800/80 rounded-xl p-3 space-y-2">
-          <label className="text-xs font-medium text-zinc-400 flex items-center gap-1.5">
-            <BookOpenIcon className="w-3.5 h-3.5 text-zinc-400" />
-            Mode Pembelajaran:
-          </label>
-          <div className="grid grid-cols-3 gap-1.5">
-            <button
-              type="button"
-              onClick={() => setActiveMode('ask')}
-              className={`py-1.5 px-2 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1 ${
-                activeMode === 'ask'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800'
-              }`}
-            >
-              <HelpCircleIcon className="w-3 h-3" />
-              Ask Mode
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveMode('learning_path')}
-              className={`py-1.5 px-2 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1 ${
-                activeMode === 'learning_path'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800'
-              }`}
-            >
-              <BookOpenIcon className="w-3 h-3" />
-              Learning Path
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveMode('productivity_task')}
-              className={`py-1.5 px-2 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1 ${
-                activeMode === 'productivity_task'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800'
-              }`}
-            >
-              <CpuIcon className="w-3 h-3" />
-              Sprint Task
-            </button>
-          </div>
+      {/* 2. Scaffolding Level Selector (Bahasa Siswa SMP) */}
+      <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-3.5 mb-4 space-y-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-medium text-zinc-300 flex items-center gap-1.5">
+            <LightbulbIcon className="w-4 h-4 text-amber-400" />
+            Pilih bentuk bantuan yang kamu mau:
+          </span>
+          <span className="text-[11px] text-zinc-500">Bisa diubah kapan saja</span>
         </div>
 
-        {/* Scaffold Ladder Level Selector */}
-        <div className="bg-zinc-900/60 backdrop-blur border border-zinc-800/80 rounded-xl p-3 space-y-2">
-          <label className="text-xs font-medium text-zinc-400 flex items-center justify-between">
-            <span className="flex items-center gap-1.5">
-              <LightbulbIcon className="w-3.5 h-3.5 text-amber-400" />
-              Tingkat Bantuan (Scaffolding Ladder):
-            </span>
-            <span className="text-[11px] text-zinc-500">1 (Ringan) - 5 (Penuh)</span>
-          </label>
-          <div className="grid grid-cols-5 gap-1.5">
-            {SCAFFOLD_LEVELS.map((s) => (
+        {/* Scrollable Horizontal Pill for Mobile */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none -mx-1 px-1">
+          {SCAFFOLD_OPTIONS.map((item) => {
+            const isSelected = selectedLevel === item.level;
+            return (
               <button
-                key={s.level}
+                key={item.level}
                 type="button"
-                onClick={() => setSelectedLevel(s.level)}
-                className={`py-1.5 text-xs font-medium rounded-lg transition-all ${
-                  selectedLevel === s.level
-                    ? 'bg-zinc-100 text-zinc-900 font-semibold shadow'
-                    : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800'
+                onClick={() => setSelectedLevel(item.level)}
+                className={`py-2 px-3 rounded-xl border text-xs whitespace-nowrap transition-all flex items-center gap-2 shrink-0 ${
+                  isSelected ? item.activeColor : `${item.color} hover:bg-zinc-800/60`
                 }`}
-                title={s.desc}
               >
-                Lv {s.level}
+                <span className="text-sm">{item.emoji}</span>
+                <div className="text-left">
+                  <div className="font-semibold">{item.title}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[11px] text-zinc-400 italic">
+          💡 Sedang aktif: <strong className="text-zinc-200">{activeLevelConfig.title}</strong> — {activeLevelConfig.subtitle}
+        </p>
+      </div>
+
+      {/* 3. Main Chat & Interaction Feed */}
+      <div className="flex-1 space-y-4">
+        {/* Welcome Card if no question yet */}
+        {!submittedQuestion && (
+          <div className="bg-gradient-to-b from-zinc-900/90 to-zinc-900/40 border border-zinc-800 rounded-2xl p-5 text-center space-y-4 shadow-sm my-auto">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shadow-inner">
+              <SmileIcon className="w-7 h-7" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-semibold text-zinc-100">
+                Halo! Mau belajar apa kita hari ini?
+              </h3>
+              <p className="text-xs text-zinc-400 max-w-sm mx-auto leading-relaxed">
+                Tulis soal Matematika atau Informatika yang bikin kamu pusing. Kak Ambis akan bimbing langkah demi langkah!
+              </p>
+            </div>
+
+            {/* Quick suggested chips */}
+            <div className="pt-2 text-left space-y-2">
+              <p className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">
+                Coba klik contoh soal ini:
+              </p>
+              <div className="flex flex-col gap-2">
+                {SUGGESTED_QUESTIONS.map((q, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleSend(q.text)}
+                    className="w-full text-left p-2.5 rounded-xl bg-zinc-850 hover:bg-zinc-800 border border-zinc-750/80 text-xs text-zinc-300 hover:text-white transition-all flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-indigo-400">{q.topic}</span>
+                      <span className="text-zinc-400 group-hover:text-zinc-200 line-clamp-1">
+                        {q.text}
+                      </span>
+                    </div>
+                    <span className="text-zinc-500 group-hover:text-indigo-400 text-xs shrink-0 ml-2">
+                      Coba ➔
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Student Bubble (Question) */}
+        {submittedQuestion && (
+          <div className="flex justify-end gap-2.5 items-end">
+            <div className="max-w-[85%] sm:max-w-[75%] bg-indigo-600 text-white rounded-2xl rounded-br-sm px-4 py-3 text-sm shadow-md leading-relaxed">
+              <p className="font-medium">{submittedQuestion}</p>
+              <span className="block text-[10px] text-indigo-200/80 text-right mt-1">
+                {activeMode === 'ask' ? 'Mode Tanya PR' : 'Mode Rute Belajar'}
+              </span>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs text-zinc-300 font-bold shrink-0">
+              Kamu
+            </div>
+          </div>
+        )}
+
+        {/* Kak Ambis Tutor Response Bubble */}
+        {(isThinking || content || toolCalls.length > 0) && (
+          <div className="flex justify-start gap-2.5 items-start">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow mt-1">
+              🤖
+            </div>
+
+            <div className="max-w-[90%] sm:max-w-[85%] space-y-3">
+              {/* Friendly Thinking Accordion */}
+              {(isThinking || thoughts.length > 0) && (
+                <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => setShowThinkingDetail(!showThinkingDetail)}
+                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs text-zinc-300 hover:bg-zinc-800/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 font-medium">
+                      <BrainIcon
+                        className={`w-4 h-4 ${
+                          isThinking ? 'text-indigo-400 animate-spin' : 'text-zinc-400'
+                        }`}
+                      />
+                      <span>
+                        {isThinking
+                          ? 'Kak Ambis lagi menyusun cara bimbingan...'
+                          : `Cara Kak Ambis berpikir (${thoughts.length} langkah)`}
+                      </span>
+                    </div>
+                    {showThinkingDetail ? (
+                      <ChevronUpIcon className="w-4 h-4 text-zinc-400" />
+                    ) : (
+                      <ChevronDownIcon className="w-4 h-4 text-zinc-400" />
+                    )}
+                  </button>
+
+                  {showThinkingDetail && (
+                    <div className="px-3.5 pb-3 pt-1 border-t border-zinc-800/60 bg-zinc-950/40 space-y-2 text-xs">
+                      {thoughts.map((thought, idx) => (
+                        <div key={idx} className="flex items-start gap-2 text-zinc-400">
+                          <CheckCircleIcon className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                          <span>{thought}</span>
+                        </div>
+                      ))}
+
+                      {/* Friendly Tool Summary */}
+                      {toolCalls.length > 0 && (
+                        <div className="p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[11px] flex items-center gap-2 mt-2">
+                          <SparklesIcon className="w-3.5 h-3.5 shrink-0" />
+                          <span>Miskonsepsi dianalisis & level bantuan disesuaikan otomatis!</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tutor Message Card */}
+              <div className="bg-zinc-900/95 border border-zinc-800/90 rounded-2xl rounded-tl-sm p-4 sm:p-5 text-zinc-100 text-sm leading-relaxed shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-zinc-800/60 pb-2 text-xs text-zinc-400">
+                  <span className="font-semibold text-zinc-200 flex items-center gap-1.5">
+                    <span>Kak Ambis</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400">
+                      {activeLevelConfig.title}
+                    </span>
+                  </span>
+                  {isStreaming && (
+                    <span className="flex items-center gap-1.5 text-indigo-400 text-xs font-mono">
+                      <span className="w-2 h-2 rounded-full bg-indigo-400 animate-ping" />
+                      Mengetik...
+                    </span>
+                  )}
+                </div>
+
+                <div className="text-zinc-100 text-[14px] sm:text-[15px] leading-relaxed whitespace-pre-wrap">
+                  {content}
+                  {isStreaming && (
+                    <span className="inline-block w-1.5 h-4 ml-1 bg-indigo-400 animate-pulse align-middle" />
+                  )}
+                </div>
+
+                {/* Micro Follow-up Chips for Students */}
+                {!isStreaming && content && (
+                  <div className="pt-3 border-t border-zinc-800/60 space-y-2">
+                    <p className="text-[11px] font-medium text-zinc-400">Gimana, sudah jelas?</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleSend('Aku sudah paham! Sekarang kasih soal latihan yang mirip.')}
+                        className="text-xs py-1.5 px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-medium transition-all"
+                      >
+                        👍 Paham! Coba latihan
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedLevel((prev) => Math.min(prev + 1, 5));
+                          handleSend('Masih agak bingung, boleh dijelaskan lebih rinci lagi langkahnya?');
+                        }}
+                        className="text-xs py-1.5 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 font-medium transition-all"
+                      >
+                        🤔 Masih bingung, bimbing lagi
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Card */}
+        {error && (
+          <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between shadow-sm">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={reset}
+              className="text-rose-400 hover:underline font-semibold ml-2"
+            >
+              Coba Lagi
+            </button>
+          </div>
+        )}
+
+        <div ref={chatEndRef} />
+      </div>
+
+      {/* 4. Sticky Bottom Mobile Input Dock */}
+      <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-zinc-950/90 backdrop-blur-lg border-t border-zinc-800/80 z-20">
+        <div className="max-w-2xl mx-auto space-y-2">
+          {/* Quick topic shortcuts */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-[11px]">
+            <span className="text-zinc-500 whitespace-nowrap">Pilihan Cepat:</span>
+            {SUGGESTED_QUESTIONS.map((q, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setInputPrompt(q.text)}
+                className="py-0.5 px-2.5 rounded-full bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-300 whitespace-nowrap transition-colors"
+              >
+                {q.topic}
               </button>
             ))}
           </div>
-        </div>
-      </div>
 
-      {/* Preset Prompts Pills */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs text-zinc-500">Contoh Prompt:</span>
-        {PRESET_PROMPTS.map((preset, idx) => (
-          <button
-            key={idx}
-            type="button"
-            onClick={() => handleSelectPreset(preset.text)}
-            className="text-xs py-1 px-2.5 rounded-full bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700/50 text-zinc-300 transition-colors"
+          {/* Form Input Bar */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSend();
+            }}
+            className="flex items-center gap-2"
           >
-            {preset.label}
-          </button>
-        ))}
-      </div>
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={inputPrompt}
+                onChange={(e) => setInputPrompt(e.target.value)}
+                placeholder="Tulis pertanyaan PR Matematika atau Informatika..."
+                disabled={isStreaming}
+                className="w-full bg-zinc-900 border border-zinc-700/80 focus:border-indigo-500 rounded-2xl pl-4 pr-10 py-3 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
+              />
+              {inputPrompt && !isStreaming && (
+                <button
+                  type="button"
+                  onClick={() => setInputPrompt('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
 
-      {/* Input Prompt Form */}
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div className="relative">
-          <textarea
-            value={inputPrompt}
-            onChange={(e) => setInputPrompt(e.target.value)}
-            placeholder="Tanyakan soal atau topik pembelajaran (contoh: 'Bagaimana cara mencari nilai x pada 2x + 4 = 10?')..."
-            rows={3}
-            disabled={isStreaming}
-            className="w-full bg-zinc-900/90 border border-zinc-700/70 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all resize-none shadow-inner"
-          />
-          <div className="absolute right-3 bottom-3 flex items-center gap-2">
+            {/* Action Buttons */}
             {isStreaming ? (
               <button
                 type="button"
                 onClick={abortStream}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-400 rounded-lg text-xs font-medium transition-all"
+                className="h-11 px-4 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 rounded-2xl text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0"
               >
-                <SquareIcon className="w-3.5 h-3.5" />
-                Stop
+                <SquareIcon className="w-3.5 h-3.5 fill-current" />
+                <span>Stop</span>
               </button>
             ) : (
               <button
                 type="submit"
                 disabled={!inputPrompt.trim()}
-                className="flex items-center gap-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-xs font-medium shadow transition-all"
+                className="h-11 px-4 sm:px-5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-2xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md shadow-indigo-600/20 shrink-0"
               >
+                <span>Kirim</span>
                 <SendIcon className="w-3.5 h-3.5" />
-                Kirim
               </button>
             )}
-          </div>
-        </div>
-      </form>
 
-      {/* Error Banner */}
-      {error && (
-        <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertCircleIcon className="w-4 h-4 text-rose-400 shrink-0" />
-            <span>{error}</span>
-          </div>
-          <button
-            type="button"
-            onClick={reset}
-            className="text-rose-400 hover:underline text-xs ml-2"
-          >
-            Reset
-          </button>
-        </div>
-      )}
-
-      {/* Agent Thinking & Reasoning Process (Accordion) */}
-      {(thoughts.length > 0 || isThinking || toolCalls.length > 0) && (
-        <div className="bg-zinc-900/70 border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
-          <button
-            type="button"
-            onClick={() => setShowThinking(!showThinking)}
-            className="w-full px-4 py-3 flex items-center justify-between text-xs font-medium text-zinc-300 hover:bg-zinc-800/40 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <CpuIcon className={`w-4 h-4 ${isThinking ? 'text-indigo-400 animate-spin' : 'text-zinc-400'}`} />
-              <span>
-                {isThinking ? 'Agent sedang memproses reasoning...' : 'Log Proses Berpikir Agent (Reasoning Steps)'}
-              </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400">
-                {thoughts.length} tahap
-              </span>
-            </div>
-            {showThinking ? <ChevronUpIcon className="w-4 h-4 text-zinc-400" /> : <ChevronDownIcon className="w-4 h-4 text-zinc-400" />}
-          </button>
-
-          {showThinking && (
-            <div className="px-4 pb-4 pt-1 space-y-2.5 border-t border-zinc-800/60 bg-zinc-950/40 font-mono text-xs">
-              {thoughts.map((thought, idx) => (
-                <div key={idx} className="flex items-start gap-2 text-zinc-400">
-                  <span className="text-indigo-400 text-[10px] mt-0.5">▶</span>
-                  <span>{thought}</span>
-                </div>
-              ))}
-
-              {/* Tool Calls Visualizer */}
-              {toolCalls.length > 0 && (
-                <div className="pt-2 border-t border-zinc-800/50 space-y-2">
-                  <div className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5 font-sans">
-                    <WrenchIcon className="w-3 h-3 text-amber-400" />
-                    Function Calling Execution:
-                  </div>
-                  {toolCalls.map((tool, idx) => (
-                    <div
-                      key={idx}
-                      className="p-2.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs space-y-1"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-indigo-300 font-semibold">{tool.tool_name}()</span>
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                            tool.status === 'success'
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                          }`}
-                        >
-                          {tool.status || 'Executing...'}
-                        </span>
-                      </div>
-                      {tool.output && (
-                        <pre className="text-[10px] text-zinc-400 overflow-x-auto bg-black/40 p-1.5 rounded">
-                          {JSON.stringify(tool.output, null, 2)}
-                        </pre>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Streaming Agent Response Box */}
-      {(content || isStreaming) && (
-        <div className="bg-zinc-900/90 border border-zinc-800 rounded-xl p-5 space-y-3 shadow-sm">
-          <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-zinc-800/60 pb-2">
-            <span className="font-semibold text-zinc-200 flex items-center gap-1.5">
-              <SparklesIcon className="w-3.5 h-3.5 text-indigo-400" />
-              Respon Hermes Agent:
-            </span>
-            <div className="flex items-center gap-2">
-              {isStreaming && (
-                <span className="flex items-center gap-1.5 text-indigo-400 text-xs font-mono">
-                  <span className="w-2 h-2 rounded-full bg-indigo-400 animate-ping" />
-                  Streaming...
-                </span>
-              )}
+            {/* Reset Button */}
+            {(content || submittedQuestion) && !isStreaming && (
               <button
                 type="button"
-                onClick={reset}
-                className="p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
-                title="Bersihkan respon"
+                onClick={() => {
+                  reset();
+                  setSubmittedQuestion(null);
+                }}
+                className="h-11 w-11 rounded-2xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 text-zinc-400 hover:text-zinc-200 flex items-center justify-center transition-colors shrink-0"
+                title="Mulai Sesi Baru"
               >
-                <RotateCcwIcon className="w-3.5 h-3.5" />
+                <RotateCcwIcon className="w-4 h-4" />
               </button>
-            </div>
-          </div>
-
-          <div className="text-zinc-100 text-sm leading-relaxed whitespace-pre-wrap font-sans">
-            {content}
-            {isStreaming && <span className="inline-block w-1.5 h-4 ml-1 bg-indigo-400 animate-pulse align-middle" />}
-          </div>
+            )}
+          </form>
         </div>
-      )}
+      </div>
     </div>
   );
 }

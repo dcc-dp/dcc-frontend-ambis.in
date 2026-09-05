@@ -2,30 +2,33 @@ import HermesAgentPlayground from './components/HermesAgentPlayground';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-start py-8 px-4 sm:px-6">
-      <header className="w-full max-w-4xl flex items-center justify-between pb-6 mb-6 border-b border-zinc-850">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/25">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-start">
+      {/* Mobile-First Header Bar */}
+      <header className="w-full max-w-2xl px-4 py-3.5 flex items-center justify-between border-b border-zinc-900 bg-zinc-950/80 backdrop-blur sticky top-0 z-30">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center font-bold text-white text-sm shadow-md shadow-indigo-500/20">
             A
           </div>
           <div>
-            <h1 className="font-bold text-lg text-white tracking-tight">Ambis.in</h1>
-            <p className="text-xs text-zinc-400">AI Learning & Personal Productivity Agent</p>
+            <h1 className="font-bold text-sm text-white tracking-tight leading-none">
+              Ambis.in
+            </h1>
+            <p className="text-[10px] text-zinc-400 font-medium mt-0.5">
+              Tutor AI SMP Kelas VII
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-xs text-zinc-400">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>Core Agent Active</span>
+
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-400 font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Kak Ambis Siap</span>
         </div>
       </header>
 
-      <main className="w-full max-w-4xl flex-1 flex flex-col">
+      {/* Main Interactive Playground */}
+      <main className="w-full max-w-2xl flex-1 flex flex-col pt-3">
         <HermesAgentPlayground />
       </main>
-
-      <footer className="w-full max-w-4xl text-center py-6 mt-8 border-t border-zinc-800 text-xs text-zinc-500">
-        Ambis.in &copy; 2026 AI Hackfest (Productivity & Personal AI). Built with Next.js & FastAPI.
-      </footer>
     </div>
   );
 }
