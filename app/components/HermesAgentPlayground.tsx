@@ -3,20 +3,20 @@
 import React, { useState } from 'react';
 import { useHermesAgent } from '../hooks/useHermesAgent';
 import {
-  Sparkles,
-  ChevronDown,
-  ChevronUp,
-  Cpu,
-  Wrench,
-  Square,
-  RotateCcw,
-  Send,
-  BookOpen,
-  HelpCircle,
-  Layers,
-  AlertCircle,
-  Lightbulb,
-} from 'lucide-react';
+  SparklesIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CpuIcon,
+  WrenchIcon,
+  SquareIcon,
+  RotateCcwIcon,
+  SendIcon,
+  BookOpenIcon,
+  HelpCircleIcon,
+  LayersIcon,
+  AlertCircleIcon,
+  LightbulbIcon,
+} from './Icons';
 
 const SCAFFOLD_LEVELS = [
   { level: 1, name: 'Level 1: Hint', desc: 'Petunjuk arah logika dasar', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' },
@@ -69,7 +69,7 @@ export default function HermesAgentPlayground() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-400 shadow-sm">
-            <Sparkles className="w-6 h-6 animate-pulse" />
+            <SparklesIcon className="w-6 h-6 animate-pulse" />
           </div>
           <div>
             <h2 className="text-xl font-semibold text-zinc-100 flex items-center gap-2">
@@ -87,7 +87,7 @@ export default function HermesAgentPlayground() {
         {/* Active Scaffolding Level Badge */}
         <div className="flex items-center gap-2">
           <div className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-all ${currentScaffoldInfo.color}`}>
-            <Layers className="w-3.5 h-3.5" />
+            <LayersIcon className="w-3.5 h-3.5" />
             <span>Aktif: {currentScaffoldInfo.name}</span>
           </div>
         </div>
@@ -98,7 +98,7 @@ export default function HermesAgentPlayground() {
         {/* Mode Selector */}
         <div className="bg-zinc-900/60 backdrop-blur border border-zinc-800/80 rounded-xl p-3 space-y-2">
           <label className="text-xs font-medium text-zinc-400 flex items-center gap-1.5">
-            <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
+            <BookOpenIcon className="w-3.5 h-3.5 text-zinc-400" />
             Mode Pembelajaran:
           </label>
           <div className="grid grid-cols-3 gap-1.5">
@@ -111,7 +111,7 @@ export default function HermesAgentPlayground() {
                   : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800'
               }`}
             >
-              <HelpCircle className="w-3 h-3" />
+              <HelpCircleIcon className="w-3 h-3" />
               Ask Mode
             </button>
             <button
@@ -123,7 +123,7 @@ export default function HermesAgentPlayground() {
                   : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800'
               }`}
             >
-              <BookOpen className="w-3 h-3" />
+              <BookOpenIcon className="w-3 h-3" />
               Learning Path
             </button>
             <button
@@ -135,7 +135,7 @@ export default function HermesAgentPlayground() {
                   : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800'
               }`}
             >
-              <Cpu className="w-3 h-3" />
+              <CpuIcon className="w-3 h-3" />
               Sprint Task
             </button>
           </div>
@@ -145,7 +145,7 @@ export default function HermesAgentPlayground() {
         <div className="bg-zinc-900/60 backdrop-blur border border-zinc-800/80 rounded-xl p-3 space-y-2">
           <label className="text-xs font-medium text-zinc-400 flex items-center justify-between">
             <span className="flex items-center gap-1.5">
-              <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
+              <LightbulbIcon className="w-3.5 h-3.5 text-amber-400" />
               Tingkat Bantuan (Scaffolding Ladder):
             </span>
             <span className="text-[11px] text-zinc-500">1 (Ringan) - 5 (Penuh)</span>
@@ -203,7 +203,7 @@ export default function HermesAgentPlayground() {
                 onClick={abortStream}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-400 rounded-lg text-xs font-medium transition-all"
               >
-                <Square className="w-3.5 h-3.5 fill-current" />
+                <SquareIcon className="w-3.5 h-3.5" />
                 Stop
               </button>
             ) : (
@@ -212,7 +212,7 @@ export default function HermesAgentPlayground() {
                 disabled={!inputPrompt.trim()}
                 className="flex items-center gap-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-xs font-medium shadow transition-all"
               >
-                <Send className="w-3.5 h-3.5" />
+                <SendIcon className="w-3.5 h-3.5" />
                 Kirim
               </button>
             )}
@@ -224,7 +224,7 @@ export default function HermesAgentPlayground() {
       {error && (
         <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <AlertCircleIcon className="w-4 h-4 text-rose-400 shrink-0" />
             <span>{error}</span>
           </div>
           <button
@@ -246,7 +246,7 @@ export default function HermesAgentPlayground() {
             className="w-full px-4 py-3 flex items-center justify-between text-xs font-medium text-zinc-300 hover:bg-zinc-800/40 transition-colors"
           >
             <div className="flex items-center gap-2">
-              <Cpu className={`w-4 h-4 ${isThinking ? 'text-indigo-400 animate-spin' : 'text-zinc-400'}`} />
+              <CpuIcon className={`w-4 h-4 ${isThinking ? 'text-indigo-400 animate-spin' : 'text-zinc-400'}`} />
               <span>
                 {isThinking ? 'Agent sedang memproses reasoning...' : 'Log Proses Berpikir Agent (Reasoning Steps)'}
               </span>
@@ -254,7 +254,7 @@ export default function HermesAgentPlayground() {
                 {thoughts.length} tahap
               </span>
             </div>
-            {showThinking ? <ChevronUp className="w-4 h-4 text-zinc-400" /> : <ChevronDown className="w-4 h-4 text-zinc-400" />}
+            {showThinking ? <ChevronUpIcon className="w-4 h-4 text-zinc-400" /> : <ChevronDownIcon className="w-4 h-4 text-zinc-400" />}
           </button>
 
           {showThinking && (
@@ -270,7 +270,7 @@ export default function HermesAgentPlayground() {
               {toolCalls.length > 0 && (
                 <div className="pt-2 border-t border-zinc-800/50 space-y-2">
                   <div className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5 font-sans">
-                    <Wrench className="w-3 h-3 text-amber-400" />
+                    <WrenchIcon className="w-3 h-3 text-amber-400" />
                     Function Calling Execution:
                   </div>
                   {toolCalls.map((tool, idx) => (
@@ -309,7 +309,7 @@ export default function HermesAgentPlayground() {
         <div className="bg-zinc-900/90 border border-zinc-800 rounded-xl p-5 space-y-3 shadow-sm">
           <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-zinc-800/60 pb-2">
             <span className="font-semibold text-zinc-200 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              <SparklesIcon className="w-3.5 h-3.5 text-indigo-400" />
               Respon Hermes Agent:
             </span>
             <div className="flex items-center gap-2">
@@ -325,7 +325,7 @@ export default function HermesAgentPlayground() {
                 className="p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
                 title="Bersihkan respon"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
+                <RotateCcwIcon className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
