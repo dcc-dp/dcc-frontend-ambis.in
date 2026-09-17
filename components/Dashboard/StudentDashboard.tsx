@@ -31,6 +31,7 @@ function saveProgress(progress: ConceptProgress[]) {
 
 function getDefaultProgress(): ConceptProgress[] {
   return [
+    { id: 'pecahan', name: 'Pecahan', progress: 35, previousProgress: 20, icon: '🍰' },
     { id: 'aljabar', name: 'Aljabar', progress: 42, previousProgress: 35, icon: '🔢' },
     { id: 'geometri', name: 'Geometri', progress: 67, previousProgress: 55, icon: '📐' },
     { id: 'statistika', name: 'Statistika', progress: 23, previousProgress: 15, icon: '📊' },
@@ -45,7 +46,14 @@ export function StudentDashboard({ isOpen, onClose }: StudentDashboardProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setConcepts(loadProgress());
+    const refresh = () => setConcepts(loadProgress());
+    refresh();
+    window.addEventListener('ambisin_progress_updated', refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener('ambisin_progress_updated', refresh);
+      window.removeEventListener('storage', refresh);
+    };
   }, []);
 
   useEffect(() => {

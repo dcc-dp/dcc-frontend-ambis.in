@@ -15,8 +15,10 @@ interface ChatContainerProps {
   message: string;
   isLoading: boolean;
   mode: 'ask' | 'learning-path';
+  quickPrompts?: string[];
+  onQuickPromptClick?: (prompt: string) => void;
   onMessageChange: (msg: string) => void;
-  onSendMessage: () => void;
+  onSendMessage: (overrideMsg?: string) => void;
 }
 
 export default function ChatContainer({
@@ -24,6 +26,8 @@ export default function ChatContainer({
   message,
   isLoading,
   mode,
+  quickPrompts,
+  onQuickPromptClick,
   onMessageChange,
   onSendMessage,
 }: ChatContainerProps) {
@@ -67,6 +71,23 @@ export default function ChatContainer({
       {/* Chat Input - fixed at bottom */}
       <div className="flex-shrink-0 border-t border-gray-200 bg-white p-4">
         <div className="max-w-3xl mx-auto">
+          {/* Quick Prompts Chips */}
+          {quickPrompts && quickPrompts.length > 0 && (
+            <div className="flex items-center gap-2 mb-2.5 overflow-x-auto pb-1 no-scrollbar">
+              <span className="text-[11px] font-bold text-gray-500 shrink-0">💡 Saran Cepat:</span>
+              {quickPrompts.map((qp, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => onQuickPromptClick?.(qp)}
+                  className="px-3 py-1 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-blue-700 text-xs font-semibold rounded-full border border-blue-200 transition shrink-0 whitespace-nowrap shadow-xs active:scale-95 cursor-pointer"
+                >
+                  {qp}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="flex gap-3 items-center">
             <textarea
               ref={textareaRef}
@@ -83,7 +104,7 @@ export default function ChatContainer({
               style={{ color: '#111827', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             />
             <button
-              onClick={onSendMessage}
+              onClick={() => onSendMessage()}
               disabled={!message.trim() || isLoading}
               className="px-5 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium transition h-full"
             >

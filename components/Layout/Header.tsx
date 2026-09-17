@@ -15,16 +15,26 @@ export function Header({ userName, onLogout, onSidebarToggle, sidebarOpen = true
   const [overallProgress, setOverallProgress] = useState(0);
 
   useEffect(() => {
-    const stored = localStorage.getItem('ambisin_student_progress');
-    if (stored) {
-      try {
-        const concepts: Array<{ progress: number }> = JSON.parse(stored);
-        const avg = concepts.length > 0 
-          ? Math.round(concepts.reduce((sum, c) => sum + c.progress, 0) / concepts.length)
-          : 0;
-        setOverallProgress(avg);
-      } catch { /* ignore */ }
-    }
+    const refreshProgress = () => {
+      const stored = localStorage.getItem('ambisin_student_progress');
+      if (stored) {
+        try {
+          const concepts: Array<{ progress: number }> = JSON.parse(stored);
+          const avg = concepts.length > 0 
+            ? Math.round(concepts.reduce((sum, c) => sum + c.progress, 0) / concepts.length)
+            : 0;
+          setOverallProgress(avg);
+        } catch { /* ignore */ }
+      }
+    };
+
+    refreshProgress();
+    window.addEventListener('ambisin_progress_updated', refreshProgress);
+    window.addEventListener('storage', refreshProgress);
+    return () => {
+      window.removeEventListener('ambisin_progress_updated', refreshProgress);
+      window.removeEventListener('storage', refreshProgress);
+    };
   }, []);
 
   return (

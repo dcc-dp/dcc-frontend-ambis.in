@@ -3,7 +3,15 @@
 import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 
-export function LoginPromptModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export function LoginPromptModal({
+  isOpen,
+  onClose,
+  onDevBypass,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onDevBypass?: () => void;
+}) {
   const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -57,10 +65,19 @@ export function LoginPromptModal({ isOpen, onClose }: { isOpen: boolean; onClose
           {isLoading ? 'Memproses...' : 'Masuk dengan Google'}
         </button>
 
+        {/* Dev Mode Bypass Option */}
+        <button
+          onClick={onDevBypass || onClose}
+          className="w-full px-6 py-2.5 bg-amber-50 border border-amber-300 hover:bg-amber-100 text-amber-900 rounded-xl transition font-medium text-xs sm:text-sm flex items-center justify-center gap-2 mb-2"
+        >
+          <span>⚡</span>
+          <span>Mode Dev / Lokal: Lewati Batas Chat</span>
+        </button>
+
         {/* Continue without login */}
         <button
           onClick={onClose}
-          className="w-full px-6 py-3 text-gray-600 hover:text-gray-800 font-medium transition mt-3"
+          className="w-full px-6 py-2.5 text-gray-500 hover:text-gray-700 font-medium transition text-xs sm:text-sm"
         >
           Lanjutkan Nanti
         </button>

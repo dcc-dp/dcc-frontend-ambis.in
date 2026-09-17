@@ -27,6 +27,7 @@ const topics = [
     label: 'Matematika',
     icon: '🔢',
     subtopics: [
+      { id: 'pecahan', label: 'Pecahan', desc: 'Pecahan senilai, KPK penyebut, & penjumlahan pecahan' },
       { id: 'aljabar', label: 'Aljabar', desc: 'Persamaan, pertidaksamaan, dan fungsi' },
       { id: 'geometri', label: 'Geometri', desc: 'Bangun ruang, luas, dan volume' },
       { id: 'statistika', label: 'Statistika', desc: 'Mean, median, modus, dan probabilitas' },

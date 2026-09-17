@@ -28,6 +28,7 @@ function saveProgress(progress: ConceptProgress[]) {
 
 function getDefaultProgress(): ConceptProgress[] {
   return [
+    { id: 'pecahan', name: 'Pecahan', progress: 35, previousProgress: 20, icon: '🍰', category: 'matematika' },
     { id: 'aljabar', name: 'Aljabar', progress: 42, previousProgress: 35, icon: '🔢', category: 'matematika' },
     { id: 'geometri', name: 'Geometri', progress: 67, previousProgress: 55, icon: '📐', category: 'matematika' },
     { id: 'statistika', name: 'Statistika', progress: 23, previousProgress: 15, icon: '📊', category: 'matematika' },
@@ -44,7 +45,14 @@ export default function StudentDashboardPage() {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'matematika' | 'informatika'>('all');
 
   useEffect(() => {
-    setConcepts(loadProgress());
+    const refresh = () => setConcepts(loadProgress());
+    refresh();
+    window.addEventListener('ambisin_progress_updated', refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener('ambisin_progress_updated', refresh);
+      window.removeEventListener('storage', refresh);
+    };
   }, []);
 
   const getProgressColor = (progress: number) => {

@@ -67,6 +67,7 @@ export default function HomePage() {
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [devBypassLimit, setDevBypassLimit] = useState<boolean>(true);
   const [mascotMessage, setMascotMessage] = useState('Halo! Saya asisten belajar Anda 🎓');
   const [mascotMood, setMascotMood] = useState<'happy' | 'thinking' | 'waving' | 'idle'>('waving');
   const hasLoaded = useRef(false);
@@ -94,14 +95,33 @@ export default function HomePage() {
   }, [chatHistory]);
 
   useEffect(() => {
-    if (chatCount === 3) {
+    const isEnvDisabled = process.env.NEXT_PUBLIC_DISABLE_CHAT_LIMIT === 'true';
+    const stored = localStorage.getItem('dev_bypass_chat_limit');
+    if (stored !== null) {
+      setDevBypassLimit(stored === 'true');
+    } else {
+      setDevBypassLimit(isEnvDisabled || process.env.NODE_ENV === 'development');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!devBypassLimit && chatCount >= 3) {
       setShowLoginModal(true);
     }
-  }, [chatCount]);
+  }, [chatCount, devBypassLimit]);
 
   const handleContinueLater = () => {
     setShowLoginModal(false);
-    setIsBlocked(true);
+    if (!devBypassLimit) {
+      setIsBlocked(true);
+    }
+  };
+
+  const handleDevBypass = () => {
+    setDevBypassLimit(true);
+    setIsBlocked(false);
+    setShowLoginModal(false);
+    localStorage.setItem('dev_bypass_chat_limit', 'true');
   };
 
   const handleInitialQuestionsSubmit = (answers: { goal: string; topic: string; subtopic: string; difficulty: string }) => {
@@ -114,7 +134,7 @@ export default function HomePage() {
   const handleSendMessage = async () => {
     if (!message.trim()) return;
     
-    if (isBlocked) {
+    if (isBlocked && !devBypassLimit) {
       setShowLoginModal(true);
       return;
     }
@@ -161,11 +181,37 @@ export default function HomePage() {
       });
     }
 
-    setTimeout(() => {
+    try {
+      setMascotMood('thinking');
+      setMascotMessage('Kak Ambis sedang memikirkan jawaban untukmu...');
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+      const response = await fetch(`${baseUrl}/api/v1/ask/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: currentMessage,
+          mode: 'general',
+        }),
+      });
+
+      let assistantText = '';
+      if (response.ok) {
+        const data = await response.json();
+        assistantText = data.answer || 'Halo! Kak Ambis siap membantu belajarmu.';
+        setMascotMood('happy');
+        setMascotMessage('Semoga penjelasan Kak Ambis membantu ya! 🌟');
+      } else {
+        assistantText = 'Maaf, terjadi kendala saat menghubungi Kak Ambis. Silakan coba lagi ya!';
+        setMascotMood('idle');
+        setMascotMessage('Ada kendala sebentar, coba lagi ya.');
+      }
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `Terima kasih atas pertanyaanmu: "${currentMessage}".\n\nAI Assistant sedang memproses jawaban... (Mode demo - belum terhubung ke backend AI)`,
+        content: assistantText,
         createdAt: new Date(),
       };
       const finalMessages = [...updatedMessages, assistantMessage];
@@ -180,7 +226,20 @@ export default function HomePage() {
         saveChatHistory(updated);
         return updated;
       });
-    }, 1000);
+    } catch (err) {
+      console.error('Error calling AI:', err);
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Maaf, Kak Ambis sedang offline atau tidak bisa dihubungi saat ini. Pastikan backend aktif ya!',
+        createdAt: new Date(),
+      };
+      const finalMessages = [...updatedMessages, assistantMessage];
+      setMessages(finalMessages);
+      setIsLoading(false);
+      setMascotMood('idle');
+      setMascotMessage('Yuk coba kirim lagi nanti.');
+    }
   };
 
   const handleNewChat = () => {
@@ -277,6 +336,35 @@ export default function HomePage() {
           </div>
         )}
 
+        {/* Dev Mode Switch Bar */}
+        <div className="flex items-center justify-between px-4 py-1.5 border-y border-gray-200/70 bg-gray-50/90 text-xs text-gray-500 flex-shrink-0">
+          <div className="flex items-center gap-1.5 text-gray-600 font-medium text-[11px]">
+            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            <span>Chat Belajar Interaktif</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-medium text-gray-500">⚡ Mode Dev:</span>
+            <button
+              type="button"
+              onClick={() => {
+                const nextVal = !devBypassLimit;
+                setDevBypassLimit(nextVal);
+                if (nextVal) setIsBlocked(false);
+                localStorage.setItem('dev_bypass_chat_limit', String(nextVal));
+              }}
+              className={`px-2 py-0.5 rounded-full font-semibold transition text-[10px] sm:text-[11px] flex items-center gap-1.5 cursor-pointer ${
+                devBypassLimit
+                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200'
+                  : 'bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200'
+              }`}
+              title="Klik untuk aktifkan / matikan batas 3 chat gratis"
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${devBypassLimit ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+              {devBypassLimit ? 'Batas Chat: OFF (Unlimited)' : 'Batas Chat: ON (Maks 3)'}
+            </button>
+          </div>
+        </div>
+
         {/* Chat Container - Shared Component */}
         <ChatContainer
           messages={messages}
@@ -298,6 +386,7 @@ export default function HomePage() {
       <LoginPromptModal
         isOpen={showLoginModal}
         onClose={handleContinueLater}
+        onDevBypass={handleDevBypass}
       />
 
       <Mascot 

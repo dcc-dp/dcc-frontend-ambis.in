@@ -1,6 +1,5 @@
-'use client';
-
 import React from 'react';
+import MathContent from '@/components/Chat/MathContent';
 
 interface Message {
   id: string;
@@ -52,25 +51,40 @@ export function MessageList({ messages, mode = 'ask' }: MessageListProps) {
             }`}
           >
             <div
-              className={`max-w-2xl px-4 py-3 rounded-2xl ${
+              className={`max-w-2xl px-5 py-4 rounded-2xl ${
                 message.role === 'user'
-                  ? 'bg-blue-600 text-white rounded-br-none'
-                  : 'bg-gray-100 text-gray-900 rounded-bl-none'
+                  ? 'bg-blue-600 text-white rounded-br-none shadow-xs'
+                  : 'bg-white border border-gray-200/90 text-gray-900 rounded-bl-none shadow-sm'
               }`}
             >
-              <div className="flex items-center gap-2 mb-1">
-                {message.role === 'assistant' && (
-                  <span className="text-xs font-medium text-gray-500">
-                    AI Assistant
+              <div className="flex items-center gap-2 mb-2 pb-1 border-b border-gray-100">
+                {message.role === 'assistant' ? (
+                  <div className="flex items-center gap-1.5">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-xs">
+                      🦉
+                    </span>
+                    <span className="text-xs font-semibold text-blue-700">
+                      Kak Ambis
+                    </span>
+                    <span className="px-1.5 py-0.2 rounded-full bg-blue-50 text-[10px] font-medium text-blue-600 border border-blue-200/50">
+                      Tutor AI
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-xs font-medium text-blue-100">
+                    Kamu
                   </span>
                 )}
               </div>
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                {message.content}
-              </p>
+
+              <MathContent
+                content={message.content}
+                isUser={message.role === 'user'}
+              />
+
               <p
-                className={`text-xs mt-2 ${
-                  message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
+                className={`text-[11px] mt-2.5 text-right ${
+                  message.role === 'user' ? 'text-blue-200' : 'text-gray-400'
                 }`}
               >
                 {new Date(message.createdAt).toLocaleTimeString('id-ID', {
