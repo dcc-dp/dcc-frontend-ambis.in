@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import MessageList from '@/components/Chat/MessageList';
+import ModelSelector from '@/components/Chat/ModelSelector';
 
 interface Message {
   id: string;
@@ -19,6 +20,8 @@ interface ChatContainerProps {
   onQuickPromptClick?: (prompt: string) => void;
   onMessageChange: (msg: string) => void;
   onSendMessage: (overrideMsg?: string) => void;
+  selectedModelId?: string;
+  onModelChange?: (modelId: string) => void;
 }
 
 export default function ChatContainer({
@@ -30,6 +33,8 @@ export default function ChatContainer({
   onQuickPromptClick,
   onMessageChange,
   onSendMessage,
+  selectedModelId = 'groq/llama-3.3-70b-versatile',
+  onModelChange,
 }: ChatContainerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -88,6 +93,19 @@ export default function ChatContainer({
             </div>
           )}
 
+          {/* Model Selector + Input Row */}
+          <div className="flex items-center gap-2 mb-2">
+            {onModelChange && (
+              <ModelSelector
+                selectedModelId={selectedModelId}
+                onModelChange={onModelChange}
+              />
+            )}
+            <div className="flex-1" />
+            <span className="text-[10px] text-gray-400 hidden sm:block">
+              Shift+Enter untuk baris baru
+            </span>
+          </div>
           <div className="flex gap-3 items-center">
             <textarea
               ref={textareaRef}

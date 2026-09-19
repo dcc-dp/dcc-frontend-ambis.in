@@ -6,6 +6,7 @@ import ChatContainer from '@/components/Chat/ChatContainer';
 import { InitialQuestionsModal } from '@/components/Modal/InitialQuestionsModal';
 import { LoginPromptModal } from '@/components/Modal/LoginPromptModal';
 import Mascot from '@/components/Mascot/Mascot';
+import { MODEL_STORAGE_KEY } from '@/components/Chat/ModelSelector';
 
 interface Message {
   id: string;
@@ -70,6 +71,7 @@ export default function HomePage() {
   const [devBypassLimit, setDevBypassLimit] = useState<boolean>(true);
   const [mascotMessage, setMascotMessage] = useState('Halo! Saya asisten belajar Anda 🎓');
   const [mascotMood, setMascotMood] = useState<'happy' | 'thinking' | 'waving' | 'idle'>('waving');
+  const [selectedModelId, setSelectedModelId] = useState<string>('groq/llama-3.3-70b-versatile');
   const hasLoaded = useRef(false);
   const isSaving = useRef(false);
 
@@ -79,6 +81,10 @@ export default function HomePage() {
 
     const history = loadChatHistory('ask');
     setChatHistory(history);
+
+    // Load saved model selection
+    const savedModel = localStorage.getItem(MODEL_STORAGE_KEY);
+    if (savedModel) setSelectedModelId(savedModel);
 
     const stored = localStorage.getItem('hasCompletedInitialQuestions');
     if (stored === 'true') {
@@ -184,26 +190,89 @@ export default function HomePage() {
     try {
       setMascotMood('thinking');
       setMascotMessage('Kak Ambis sedang memikirkan jawaban untukmu...');
+      setIsLoading(true);
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
-      const response = await fetch(`${baseUrl}/api/v1/ask/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          question: currentMessage,
-          mode: 'general',
-        }),
-      });
+      const controller = new AbortController();
+      const timeoutMs = 60_000;
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      let response: Response;
+      try {
+        response = await fetch(`${baseUrl}/api/v1/chat/stream`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'text/event-stream',
+          },
+          body: JSON.stringify({
+            prompt: currentMessage,
+            model_id: selectedModelId,
+            stream: true,
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       let assistantText = '';
       if (response.ok) {
-        const data = await response.json();
-        assistantText = data.answer || 'Halo! Kak Ambis siap membantu belajarmu.';
-        setMascotMood('happy');
-        setMascotMessage('Semoga penjelasan Kak Ambis membantu ya! 🌟');
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+        if (reader) {
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const parts = buffer.split('\n\n');
+            buffer = parts.pop() || '';
+            for (const raw of parts) {
+              const lines = raw.split('\n');
+              let eventType = 'token';
+              let dataStr = '';
+              for (const line of lines) {
+                if (line.startsWith('event:')) {
+                  eventType = line.slice(6).trim();
+                } else if (line.startsWith('data:')) {
+                  dataStr += line.slice(5).trim();
+                }
+              }
+              if (!dataStr) continue;
+              try {
+                const data = JSON.parse(dataStr);
+                if (eventType === 'token') {
+                  assistantText += data.chunk || '';
+                  setMascotMessage(
+                    assistantText.slice(0, 60) +
+                      (assistantText.length > 60 ? '...' : '')
+                  );
+                } else if (eventType === 'thinking') {
+                  setMascotMessage(data.status || 'sedang memproses...');
+                } else if (eventType === 'done') {
+                  setMascotMood('happy');
+                  setMascotMessage(
+                    'Semoga penjelasan Kak Ambis membantu ya! 🌟'
+                  );
+                } else if (eventType === 'error') {
+                  assistantText =
+                    `Maaf, terjadi kendala: ${data.message || 'tidak diketahui'}`;
+                  setMascotMood('idle');
+                  setMascotMessage('Ada kendala sebentar, coba lagi ya.');
+                }
+              } catch (parseErr) {
+                console.warn('Gagal parse SSE data:', parseErr);
+              }
+            }
+          }
+        }
+        if (!assistantText) {
+          assistantText = 'Halo! Kak Ambis siap membantu belajarmu.';
+        }
       } else {
-        assistantText = 'Maaf, terjadi kendala saat menghubungi Kak Ambis. Silakan coba lagi ya!';
+        const errData = await response.json().catch(() => ({}));
+        assistantText =
+          errData.detail ||
+          'Maaf, terjadi kendala saat menghubungi Kak Ambis. Silakan coba lagi ya!';
         setMascotMood('idle');
         setMascotMessage('Ada kendala sebentar, coba lagi ya.');
       }
@@ -231,7 +300,8 @@ export default function HomePage() {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'Maaf, Kak Ambis sedang offline atau tidak bisa dihubungi saat ini. Pastikan backend aktif ya!',
+        content:
+          'Maaf, Kak Ambis sedang offline atau tidak bisa dihubungi saat ini. Pastikan backend aktif ya!',
         createdAt: new Date(),
       };
       const finalMessages = [...updatedMessages, assistantMessage];
@@ -239,6 +309,8 @@ export default function HomePage() {
       setIsLoading(false);
       setMascotMood('idle');
       setMascotMessage('Yuk coba kirim lagi nanti.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -373,6 +445,8 @@ export default function HomePage() {
           mode="ask"
           onMessageChange={setMessage}
           onSendMessage={handleSendMessage}
+          selectedModelId={selectedModelId}
+          onModelChange={setSelectedModelId}
         />
       </div>
 
