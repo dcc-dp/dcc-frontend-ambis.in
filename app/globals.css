@@ -226,3 +226,15 @@ button {
   pointer-events: auto !important;
 }
 
+/* Animated flow connector line */
+@keyframes flow-dash {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+
+.animate-flow-dash {
+  animation: flow-dash 1s linear infinite;
+}
+
+
