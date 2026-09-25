@@ -38,6 +38,22 @@ const CHAT_HISTORY_KEY = 'ambisin_chat_history';
 const STUDENT_PROFILE_KEY = 'ambisin_student_profile';
 const DEFAULT_STUDENT_ID = '00000000-0000-0000-0000-000000000901';
 
+const DISALLOWED_NAMES = [
+  'siapa', 'siapakah', 'apa', 'apakah', 'mana', 'dimana', 'kenapa',
+  'tau', 'tahu', 'ingat', 'lupa', 'kamu', 'anda', 'kakak', 'kak',
+  'siswa demo', 'anonim', 'admin', 'user', 'null', 'undefined'
+];
+
+function isValidStudentName(name?: string | null): boolean {
+  if (!name) return false;
+  const cleaned = name.trim().toLowerCase().replace(/[.,!?;:]/g, '');
+  if (DISALLOWED_NAMES.includes(cleaned)) return false;
+  for (const bad of ['siapa', 'siapakah', 'apakah', 'tau', 'tahu', 'ingat', 'lupa']) {
+    if (cleaned.split(/\s+/).includes(bad)) return false;
+  }
+  return cleaned.length >= 2;
+}
+
 function loadChatHistory(filterType?: 'ask' | 'learning-path'): ChatHistory[] {
   try {
     const stored = localStorage.getItem(CHAT_HISTORY_KEY);
@@ -116,6 +132,11 @@ export default function HomePage() {
     } catch (e) {
       console.warn('Error reading student profile:', e);
     }
+    // Bersihkan nama jika sebelumnya sempat tersimpan nama keliru seperti "Siapa"
+    if (activeProfile.name && !isValidStudentName(activeProfile.name)) {
+      activeProfile.name = undefined;
+      localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(activeProfile));
+    }
     setStudentProfile(activeProfile);
 
     // 3. Sync student memory with PostgreSQL DB
@@ -123,7 +144,7 @@ export default function HomePage() {
     fetch(`${baseUrl}/api/v1/chat/memory?student_id=${activeProfile.studentId}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((dbData) => {
-        if (dbData && dbData.name) {
+        if (dbData && dbData.name && isValidStudentName(dbData.name)) {
           setStudentProfile((prev) => {
             const merged = {
               ...prev,
@@ -245,18 +266,21 @@ export default function HomePage() {
     setIsLoading(true);
     setChatCount((prev) => prev + 1);
 
-    // Deteksi perkenalan nama langsung di sisi klien
+    // Deteksi perkenalan nama langsung di sisi klien HANYA jika bukan kalimat tanya/uji memori
     let activeName = studentProfile.name;
-    const introMatch = currentMessage.match(
-      /(?:(?:nama\s+(?:saya|aku|ku)|namaku)\s*(?:adalah\s*)?|panggil\s+(?:aku|saja)\s+)([A-Za-z][A-Za-z0-9_\s]{1,25})/i
-    );
-    if (introMatch && introMatch[1]) {
-      const detected = introMatch[1].trim();
-      if (detected) {
-        activeName = detected;
-        const updated = { ...studentProfile, name: detected };
-        setStudentProfile(updated);
-        localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(updated));
+    const isQuestionOrTesting = /[?]|(?:siapa|tau|tahu|ingat|lupa|tebak|apakah|bukan)/i.test(currentMessage);
+    if (!isQuestionOrTesting) {
+      const introMatch = currentMessage.match(
+        /(?:(?:nama\s+(?:saya|aku|ku)|namaku)\s*(?:adalah\s*)?|panggil\s+(?:aku|saja)\s+)([A-Za-z][A-Za-z0-9_\s]{1,25})/i
+      );
+      if (introMatch && introMatch[1]) {
+        const detected = introMatch[1].trim();
+        if (isValidStudentName(detected)) {
+          activeName = detected;
+          const updated = { ...studentProfile, name: detected };
+          setStudentProfile(updated);
+          localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(updated));
+        }
       }
     }
 
@@ -380,7 +404,7 @@ export default function HomePage() {
                   );
                 } else if (eventType === 'memory') {
                   // Perbarui memori siswa secara real-time dari respon backend
-                  if (data.name) {
+                  if (data.name && isValidStudentName(data.name)) {
                     setStudentProfile((prev) => {
                       const updated = {
                         ...prev,
@@ -396,7 +420,7 @@ export default function HomePage() {
                 } else if (eventType === 'done') {
                   setMascotMood('happy');
                   setMascotMessage('Semoga penjelasan Kak Ambis membantu belajarmu.');
-                  if (data.student_name) {
+                  if (data.student_name && isValidStudentName(data.student_name)) {
                     setStudentProfile((prev) => {
                       if (prev.name === data.student_name) return prev;
                       const updated = { ...prev, name: data.student_name };
