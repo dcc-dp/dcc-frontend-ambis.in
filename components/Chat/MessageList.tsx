@@ -1,19 +1,23 @@
 import React from 'react';
 import MathContent from '@/components/Chat/MathContent';
+import { CanvasTriggerButton } from '@/components/Canvas/LearningCanvas';
+import type { CanvasData } from '@/components/Canvas/LearningCanvas';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   createdAt: Date;
+  canvasData?: CanvasData;
 }
 
 interface MessageListProps {
   messages: Message[];
   mode?: 'ask' | 'learning-path';
+  onOpenCanvas?: (data: CanvasData) => void;
 }
 
-export function MessageList({ messages, mode = 'ask' }: MessageListProps) {
+export function MessageList({ messages, mode = 'ask', onOpenCanvas }: MessageListProps) {
   const placeholderText = mode === 'learning-path' 
     ? 'Belum ada percakapan. Tanya tentang materi yang sedang kamu pelajari!'
     : 'Belum ada percakapan';
@@ -60,8 +64,8 @@ export function MessageList({ messages, mode = 'ask' }: MessageListProps) {
               <div className="flex items-center gap-2 mb-2 pb-1 border-b border-gray-100">
                 {message.role === 'assistant' ? (
                   <div className="flex items-center gap-1.5">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-xs">
-                      🦉
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white shadow-2xs">
+                      A
                     </span>
                     <span className="text-xs font-semibold text-blue-700">
                       Kak Ambis
@@ -81,6 +85,11 @@ export function MessageList({ messages, mode = 'ask' }: MessageListProps) {
                 content={message.content}
                 isUser={message.role === 'user'}
               />
+
+              {/* Canvas trigger button — only for assistant messages that have canvas data */}
+              {message.role === 'assistant' && message.canvasData && onOpenCanvas && (
+                <CanvasTriggerButton onClick={() => onOpenCanvas(message.canvasData!)} />
+              )}
 
               <p
                 className={`text-[11px] mt-2.5 text-right ${

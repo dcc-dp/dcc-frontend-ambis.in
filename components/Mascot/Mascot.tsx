@@ -12,7 +12,7 @@ interface MascotProps {
 }
 
 export default function Mascot({ 
-  message = 'Halo! Saya asisten belajar Anda 🎓', 
+  message = 'Halo! Kak Ambis siap membantu belajarmu', 
   mood = 'idle',
   size = 'md',
   position = 'bottom-right',
@@ -65,17 +65,18 @@ export default function Mascot({
     return (
       <button
         onClick={() => { setIsVisible(true); onToggle?.(); }}
-        className={`fixed ${position === 'bottom-right' ? 'right-4' : 'left-4'} bottom-4 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg flex items-center justify-center text-2xl hover:scale-110 transition-transform`}
+        className={`fixed ${position === 'bottom-right' ? 'right-4' : 'left-4'} bottom-4 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 shadow-md flex items-center justify-center text-white font-bold text-base hover:scale-105 transition-transform`}
+        title="Buka status Kak Ambis"
       >
-        🤖
+        A
       </button>
     );
   }
 
   const sizeClasses = {
-    sm: 'w-12 h-12 text-2xl',
-    md: 'w-16 h-16 text-3xl',
-    lg: 'w-20 h-20 text-4xl'
+    sm: 'w-10 h-10 text-sm',
+    md: 'w-12 h-12 text-base',
+    lg: 'w-14 h-14 text-lg'
   };
 
   const positionClasses = position === 'bottom-right' 
@@ -86,34 +87,34 @@ export default function Mascot({
     <div className={`fixed ${positionClasses} z-50 flex flex-col items-end gap-2`}>
       {/* Chat bubble */}
       {showChat && message && (
-        <div className="bg-white rounded-2xl shadow-xl p-4 max-w-[280px] border border-gray-100 animate-fade-in">
-          <p className="text-sm text-gray-700">{message}</p>
-          <div className="absolute -bottom-2 right-6 w-4 h-4 bg-white border-r border-b border-gray-100 transform rotate-45"></div>
+        <div className="bg-white rounded-xl shadow-lg p-3 max-w-[260px] border border-gray-200 animate-fade-in relative">
+          <p className="text-xs text-gray-700 leading-relaxed font-medium">{message}</p>
+          <div className="absolute -bottom-1.5 right-5 w-3 h-3 bg-white border-r border-b border-gray-200 transform rotate-45"></div>
         </div>
       )}
 
       {/* Mascot button */}
       <button
         onClick={() => { setIsVisible(false); onToggle?.(); }}
-        className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg flex items-center justify-center hover:scale-110 transition-transform relative overflow-hidden`}
+        className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-md flex items-center justify-center hover:scale-105 transition-transform relative overflow-hidden font-bold`}
+        title="Tutup status Kak Ambis"
       >
-        {/* Face */}
-        <div className="relative z-10">
-          {currentMood === 'waving' ? (
-            <span className="animate-wave inline-block">👋</span>
-          ) : currentMood === 'thinking' ? (
-            <span className="inline-block">🤔</span>
-          ) : currentMood === 'happy' ? (
-            <span className="inline-block">😊</span>
+        {/* Monogram / Status */}
+        <div className="relative z-10 flex items-center justify-center">
+          {currentMood === 'thinking' ? (
+            <svg className="w-5 h-5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
           ) : (
             <span 
-              className="inline-block" 
+              className="inline-block tracking-tighter" 
               style={{ 
-                transform: mounted && isBlinking ? 'scaleY(0)' : 'scaleY(1)',
-                transition: 'transform 0.1s'
+                transform: mounted && isBlinking ? 'scaleY(0.2)' : 'scaleY(1)',
+                transition: 'transform 0.12s ease'
               }}
             >
-              {mounted && isBlinking ? '😌' : '🤖'}
+              A
             </span>
           )}
         </div>
