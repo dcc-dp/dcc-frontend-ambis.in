@@ -187,3 +187,42 @@ button {
 .duration-400 {
   transition-duration: 400ms;
 }
+
+/* Learning Canvas side panel (smooth slide in from the right edge) */
+.canvas-panel {
+  width: 100%;
+  margin-right: -100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: margin-right 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.22s ease-in-out;
+  will-change: margin-right, opacity;
+}
+
+@media (min-width: 768px) {
+  .canvas-panel {
+    width: 460px;
+    margin-right: -460px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .canvas-panel {
+    width: 500px;
+    margin-right: -500px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .canvas-panel {
+    width: 540px;
+    margin-right: -540px;
+  }
+}
+
+.canvas-panel.canvas-panel-open {
+  margin-right: 0 !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+

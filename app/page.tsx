@@ -543,12 +543,8 @@ export default function HomePage() {
       }))}
     >
       <div className="flex h-full w-full overflow-hidden relative">
-        {/* Left Column: Chat Area (resizes smoothly when canvas opens) */}
-        <div
-          className={`flex flex-col h-full min-w-0 transition-all duration-300 ease-in-out ${
-            canvasOpen && canvasData ? 'flex-1' : 'w-full'
-          }`}
-        >
+        {/* Left Column: Chat Area (resizes smoothly in lockstep as canvas slides in/out) */}
+        <div className="flex-1 flex flex-col h-full min-w-0">
           {/* Header info - only show when no messages */}
           {messages.length === 0 && (
             <div className="text-center py-4 md:py-6 px-4 flex-shrink-0">
@@ -675,26 +671,19 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Right Column: Learning Canvas Layout Panel (Side-by-side, NOT a modal) */}
+        {/* Right Column: Learning Canvas Layout Panel (Slides in from the right edge smoothly) */}
         <aside
           aria-label="Learning Canvas Panel"
-          className={`
-            fixed inset-0 z-30 md:static md:z-auto shrink-0 h-full bg-white flex flex-col
-            transition-[width,opacity] duration-300 ease-in-out
-            ${canvasOpen && canvasData
-              ? 'w-full md:w-[460px] lg:w-[500px] xl:w-[560px] border-l border-gray-200 opacity-100 shadow-xl md:shadow-none'
-              : 'w-0 border-l-0 opacity-0 pointer-events-none overflow-hidden hidden md:flex md:w-0'
-            }
-          `}
+          className={`shrink-0 h-full bg-white flex flex-col z-10 overflow-hidden canvas-panel ${
+            canvasOpen && canvasData ? 'canvas-panel-open border-l border-gray-200 shadow-xl md:shadow-none' : 'border-l-0'
+          }`}
         >
           {canvasData && (
-            <div className="w-full md:w-[460px] lg:w-[500px] xl:w-[560px] h-full flex flex-col">
-              <LearningCanvas
-                data={canvasData}
-                isOpen={canvasOpen}
-                onClose={() => setCanvasOpen(false)}
-              />
-            </div>
+            <LearningCanvas
+              data={canvasData}
+              isOpen={canvasOpen}
+              onClose={() => setCanvasOpen(false)}
+            />
           )}
         </aside>
       </div>
