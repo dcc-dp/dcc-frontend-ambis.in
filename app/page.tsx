@@ -195,6 +195,36 @@ export default function HomePage() {
       setMascotMood('thinking');
       setMascotMessage('Kak Ambis sedang memikirkan jawaban untukmu...');
       setIsLoading(true);
+      // 1. Ambil profil belajar siswa dari localStorage
+      let studentProfile: any = null;
+      try {
+        const rawAnswers = localStorage.getItem('initialAnswers');
+        if (rawAnswers) studentProfile = JSON.parse(rawAnswers);
+      } catch {}
+
+      // 2. Ambil ringkasan sesi-sesi percakapan terdahulu (cross-session memory)
+      const previousSessions = chatHistory
+        .filter((c) => c.id !== (currentChatId || '') && c.messages && c.messages.length > 0)
+        .slice(0, 8)
+        .map((c) => {
+          const firstUserMsg = c.messages.find((m) => m.role === 'user')?.content.slice(0, 100) || '';
+          return `Sesi "${c.title}": Pernah menanyakan "${firstUserMsg}"`;
+        });
+
+      const studentContext = {
+        goal: studentProfile?.goal,
+        topic: studentProfile?.topic,
+        subtopic: studentProfile?.subtopic,
+        difficulty: studentProfile?.difficulty,
+        previous_sessions: previousSessions.length > 0 ? previousSessions : undefined,
+      };
+
+      // 3. Sertakan 1 sesi chat penuh (hingga 50 pesan terakhir dalam sesi ini)
+      const sessionMessages = updatedMessages.slice(-50).map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
       const controller = new AbortController();
       const timeoutMs = 60_000;
@@ -209,10 +239,8 @@ export default function HomePage() {
           },
           body: JSON.stringify({
             prompt: currentMessage,
-            messages: updatedMessages.slice(-10).map((m) => ({
-              role: m.role,
-              content: m.content,
-            })),
+            messages: sessionMessages,
+            student_context: studentContext,
             model_id: selectedModelId,
             stream: true,
           }),
