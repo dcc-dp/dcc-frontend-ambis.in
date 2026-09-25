@@ -60,8 +60,8 @@ export function MessageList({ messages, mode = 'ask' }: MessageListProps) {
               <div className="flex items-center gap-2 mb-2 pb-1 border-b border-gray-100">
                 {message.role === 'assistant' ? (
                   <div className="flex items-center gap-1.5">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-xs">
-                      🦉
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white shadow-2xs">
+                      A
                     </span>
                     <span className="text-xs font-semibold text-blue-700">
                       Kak Ambis

@@ -8,6 +8,16 @@ interface MathContentProps {
   isUser?: boolean;
 }
 
+// Strip emojis from text
+function stripEmojis(text: string): string {
+  return text
+    .replace(
+      /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]/gu,
+      ''
+    )
+    .trim();
+}
+
 // Safely render KaTeX to HTML string using output: 'html'
 // (avoids hidden MathML duplicate layer that causes vertical text stacking)
 function renderKaTeX(latex: string, displayMode: boolean): string {
@@ -22,7 +32,7 @@ function renderKaTeX(latex: string, displayMode: boolean): string {
   }
 }
 
-// Code Block Component with Copy to Clipboard
+// Code Block Component with Soft/Harmonious Background (No harsh contrast, No emojis)
 function CodeBlock({ language, code }: { language: string; code: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -33,54 +43,40 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
   };
 
   return (
-    <div className="my-3 rounded-xl overflow-hidden border border-gray-800 bg-[#1e1e2e] text-gray-100 shadow-md">
-      <div className="flex items-center justify-between px-3.5 py-1.5 bg-[#181825] border-b border-gray-800/80 text-xs">
-        <span className="font-mono font-medium lowercase text-blue-400 flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
+    <div className="my-3 rounded-xl overflow-hidden border border-gray-200 bg-gray-50/80 shadow-2xs">
+      <div className="flex items-center justify-between px-3.5 py-1.5 bg-gray-100/90 border-b border-gray-200/80 text-xs">
+        <span className="font-mono font-semibold uppercase text-gray-600 text-[11px] tracking-wider">
           {language || 'code'}
         </span>
         <button
           type="button"
           onClick={handleCopy}
-          className="flex items-center gap-1 px-2 py-0.5 rounded hover:bg-gray-700/60 transition text-gray-300 hover:text-white cursor-pointer active:scale-95"
+          className="px-2 py-0.5 rounded text-[11px] font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-200/60 transition cursor-pointer active:scale-95"
         >
-          {copied ? (
-            <span className="text-emerald-400 font-medium text-[11px] flex items-center gap-1">
-              ✓ Tersalin!
-            </span>
-          ) : (
-            <span className="text-[11px] text-gray-300 flex items-center gap-1">
-              📋 Salin Kode
-            </span>
-          )}
+          {copied ? 'Tersalin' : 'Salin Kode'}
         </button>
       </div>
-      <pre className="p-3.5 font-mono text-xs sm:text-[13px] overflow-x-auto leading-relaxed text-gray-200">
+      <pre className="p-3.5 font-mono text-xs sm:text-[13px] overflow-x-auto leading-relaxed text-gray-800 bg-gray-50/40">
         <code>{code.trim()}</code>
       </pre>
     </div>
   );
 }
 
-// Tokenize an inline text line into LaTeX, bold, italic, code, and plain text
+// Tokenize an inline text line into LaTeX, bold, italic, code, and plain text (No emojis)
 function renderInlineTokens(text: string, isUser: boolean) {
-  // Matches:
-  // 1. $$...$$ (rarely inline, but catch if present)
-  // 2. $...$ (inline LaTeX)
-  // 3. **...** (bold)
-  // 4. *...* (italic)
-  // 5. `...` (inline code)
+  const cleanText = stripEmojis(text);
   const regex = /(\$\$[\s\S]*?\$\$|\$[^$\n]+\$|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
   const elements: React.ReactNode[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let keyIndex = 0;
 
-  while ((match = regex.exec(text)) !== null) {
+  while ((match = regex.exec(cleanText)) !== null) {
     if (match.index > lastIndex) {
       elements.push(
         <span key={`txt-${keyIndex++}`}>
-          {text.slice(lastIndex, match.index)}
+          {cleanText.slice(lastIndex, match.index)}
         </span>
       );
     }
@@ -139,9 +135,9 @@ function renderInlineTokens(text: string, isUser: boolean) {
     lastIndex = regex.lastIndex;
   }
 
-  if (lastIndex < text.length) {
+  if (lastIndex < cleanText.length) {
     elements.push(
-      <span key={`txt-${keyIndex++}`}>{text.slice(lastIndex)}</span>
+      <span key={`txt-${keyIndex++}`}>{cleanText.slice(lastIndex)}</span>
     );
   }
 
@@ -203,7 +199,7 @@ export default function MathContent({ content, isUser = false }: MathContentProp
   if (isUser) {
     return (
       <div className="text-sm leading-relaxed whitespace-pre-wrap">
-        {content}
+        {stripEmojis(content)}
       </div>
     );
   }
@@ -222,17 +218,17 @@ export default function MathContent({ content, isUser = false }: MathContentProp
           );
         }
 
-        // 2. Render Math Block Card
+        // 2. Render Math Block Card (No emojis)
         if (block.type === 'math') {
           const html = renderKaTeX(block.content, true);
           return (
             <div
               key={`block-math-${idx}`}
-              className="my-3 overflow-hidden rounded-xl border border-blue-200/80 bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-blue-50/70 p-3.5 shadow-xs transition-all hover:border-blue-300"
+              className="my-3 overflow-hidden rounded-xl border border-blue-200/80 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-blue-50/70 p-3.5 shadow-2xs transition-all hover:border-blue-300"
             >
               <div className="flex items-center justify-between mb-2 pb-1 border-b border-blue-100">
-                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700">
-                  📐 Kotak Rumus & Perhitungan
+                <span className="text-xs font-semibold text-blue-700">
+                  Kotak Rumus & Perhitungan
                 </span>
                 <span className="text-[10px] text-blue-500/80 font-mono uppercase tracking-wider">
                   Matematika
@@ -265,41 +261,39 @@ export default function MathContent({ content, isUser = false }: MathContentProp
                 );
               }
 
-              // B. Headings: #, ##, ###
-              if (trimmed.startsWith('### ')) {
-                const headingText = trimmed.replace(/^###\s+/, '');
-                const isTip = headingText.includes('Tips') || headingText.includes('💡');
-                return (
-                  <div
-                    key={`h3-${lineIdx}`}
-                    className={`font-bold text-sm mt-3 mb-1 flex items-center gap-1.5 ${
-                      isTip ? 'text-indigo-800' : 'text-blue-900'
-                    }`}
-                  >
-                    <span>{isTip ? '💡' : '📌'}</span>
-                    <span>{renderInlineTokens(headingText.replace(/^[💡📌]\s*/, ''), isUser)}</span>
-                  </div>
-                );
-              }
-              if (trimmed.startsWith('## ')) {
-                const headingText = trimmed.replace(/^##\s+/, '');
-                return (
-                  <h4
-                    key={`h2-${lineIdx}`}
-                    className="font-bold text-base text-gray-900 mt-3.5 mb-1.5"
-                  >
-                    {renderInlineTokens(headingText, isUser)}
-                  </h4>
-                );
-              }
-              if (trimmed.startsWith('# ')) {
-                const headingText = trimmed.replace(/^#\s+/, '');
+              // B. Headings: catches ###, ##, # with or without space and with emojis attached
+              const headingMatch = trimmed.match(/^(#{1,6})\s*(.*)$/);
+              if (headingMatch) {
+                const level = headingMatch[1].length;
+                const rawTitle = headingMatch[2];
+                const cleanTitle = stripEmojis(rawTitle).replace(/^[:\s-]+/, '');
+
+                if (level >= 3) {
+                  return (
+                    <div
+                      key={`h3-${lineIdx}`}
+                      className="font-bold text-sm text-blue-900 mt-3 mb-1 pl-2.5 border-l-2 border-blue-500"
+                    >
+                      {renderInlineTokens(cleanTitle, isUser)}
+                    </div>
+                  );
+                }
+                if (level === 2) {
+                  return (
+                    <h4
+                      key={`h2-${lineIdx}`}
+                      className="font-bold text-base text-gray-900 mt-3.5 mb-1.5 pl-2.5 border-l-2 border-blue-600"
+                    >
+                      {renderInlineTokens(cleanTitle, isUser)}
+                    </h4>
+                  );
+                }
                 return (
                   <h3
                     key={`h1-${lineIdx}`}
                     className="font-extrabold text-base text-gray-900 mt-4 mb-2"
                   >
-                    {renderInlineTokens(headingText, isUser)}
+                    {renderInlineTokens(cleanTitle, isUser)}
                   </h3>
                 );
               }
@@ -314,7 +308,7 @@ export default function MathContent({ content, isUser = false }: MathContentProp
                     key={`step-${lineIdx}`}
                     className="flex items-start gap-2 mt-2.5 mb-1"
                   >
-                    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-blue-600 text-white font-bold text-xs shadow-xs shrink-0 tracking-wide">
+                    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-blue-600 text-white font-bold text-xs shadow-2xs shrink-0 tracking-wide">
                       {stepLabel}
                     </span>
                     {stepDesc && (
@@ -326,15 +320,17 @@ export default function MathContent({ content, isUser = false }: MathContentProp
                 );
               }
 
-              // D. Conclusion detection: e.g. "Jadi, ..." or "Kesimpulan: ..."
+              // D. Conclusion detection: e.g. "Jadi, ..." or "Kesimpulan: ..." (No emojis)
               const isConclusion = /^(Jadi,|Kesimpulan:|Maka,)/i.test(trimmed);
               if (isConclusion) {
                 return (
                   <div
                     key={`conclusion-${lineIdx}`}
-                    className="my-2.5 rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-amber-950 shadow-xs flex items-start gap-2"
+                    className="my-2.5 rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-amber-950 shadow-2xs flex items-start gap-2.5"
                   >
-                    <span className="text-base leading-none shrink-0 mt-0.5">🌟</span>
+                    <span className="px-1.5 py-0.5 rounded bg-amber-200/80 text-amber-900 text-[10px] font-bold uppercase shrink-0 mt-0.5">
+                      Inti
+                    </span>
                     <div className="flex-1 font-medium leading-relaxed text-xs sm:text-sm">
                       {renderInlineTokens(trimmed, isUser)}
                     </div>

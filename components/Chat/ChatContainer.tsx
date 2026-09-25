@@ -78,7 +78,7 @@ export default function ChatContainer({
           {/* Quick Prompts Chips */}
           {quickPrompts && quickPrompts.length > 0 && (
             <div className="flex items-center gap-2 mb-2.5 overflow-x-auto pb-1 no-scrollbar">
-              <span className="text-[11px] font-bold text-gray-500 shrink-0">💡 Saran Cepat:</span>
+              <span className="text-[11px] font-bold text-gray-500 shrink-0">Saran Cepat:</span>
               {quickPrompts.map((qp, idx) => (
                 <button
                   key={idx}
