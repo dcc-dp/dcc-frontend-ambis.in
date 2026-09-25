@@ -209,6 +209,10 @@ export default function HomePage() {
           },
           body: JSON.stringify({
             prompt: currentMessage,
+            messages: updatedMessages.slice(-10).map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
             model_id: selectedModelId,
             stream: true,
           }),
