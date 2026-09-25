@@ -542,114 +542,161 @@ export default function HomePage() {
         updatedAt: c.createdAt,
       }))}
     >
-      <div className="flex flex-col h-full">
-        {/* Header info - only show when no messages */}
-        {messages.length === 0 && (
-          <div className="text-center py-4 md:py-6 px-4 flex-shrink-0">
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">
-              {studentProfile.name ? `Halo, ${studentProfile.name}!` : 'Halo! Apa yang ingin kamu lakukan hari ini?'}
-            </h1>
-            <p className="text-gray-500 text-xs md:text-sm">
-              {studentProfile.name
-                ? 'Kak Ambis siap melanjutkan sesi belajarmu hari ini.'
-                : 'Pilih fitur atau langsung ketik pesan di bawah'}
-            </p>
-          </div>
-        )}
+      <div className="flex h-full w-full overflow-hidden relative">
+        {/* Left Column: Chat Area (resizes smoothly when canvas opens) */}
+        <div
+          className={`flex flex-col h-full min-w-0 transition-all duration-300 ease-in-out ${
+            canvasOpen && canvasData ? 'flex-1' : 'w-full'
+          }`}
+        >
+          {/* Header info - only show when no messages */}
+          {messages.length === 0 && (
+            <div className="text-center py-4 md:py-6 px-4 flex-shrink-0">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">
+                {studentProfile.name ? `Halo, ${studentProfile.name}!` : 'Halo! Apa yang ingin kamu lakukan hari ini?'}
+              </h1>
+              <p className="text-gray-500 text-xs md:text-sm">
+                {studentProfile.name
+                  ? 'Kak Ambis siap melanjutkan sesi belajarmu hari ini.'
+                  : 'Pilih fitur atau langsung ketik pesan di bawah'}
+              </p>
+            </div>
+          )}
 
-        {/* Feature Selector - only when no messages */}
-        {messages.length === 0 && (
-          <div className="px-4 pb-4 flex-shrink-0">
-            {/* Feature Cards */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-4">
+          {/* Feature Selector - only when no messages */}
+          {messages.length === 0 && (
+            <div className="px-4 pb-4 flex-shrink-0">
+              {/* Feature Cards */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-4">
+                <button
+                  onClick={() => {
+                    const textarea = document.querySelector('textarea');
+                    if (textarea) textarea.focus();
+                  }}
+                  className="flex-1 max-w-sm mx-auto sm:mx-0 w-full sm:w-auto bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-120 p-4 sm:p-5 border border-gray-200 hover:border-blue-300 group text-left"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-base mb-3 group-hover:scale-105 transition-transform">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">Tanya Apapun</h3>
+                  <p className="text-gray-500 text-xs sm:text-sm mb-3">
+                    Tanya materi, rumus, konsep, atau kode pemrograman
+                  </p>
+                  <span className="text-xs font-semibold text-blue-600 group-hover:underline">
+                    Mulai Bertanya &rarr;
+                  </span>
+                </button>
+
+                <button
+                  onClick={handleLearningPathClick}
+                  className="flex-1 max-w-sm mx-auto sm:mx-0 w-full sm:w-auto bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-120 p-4 sm:p-5 border border-purple-200 hover:border-purple-300 group text-left"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-base mb-3 group-hover:scale-105 transition-transform">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">Learning Path</h3>
+                  <p className="text-gray-500 text-xs sm:text-sm mb-3">
+                    Program belajar terstruktur Matematika & Informatika
+                  </p>
+                  <span className="text-xs font-semibold text-purple-600 group-hover:underline">
+                    Buka Jalur Belajar &rarr;
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Dev Mode Switch Bar */}
+          <div className="flex items-center justify-between px-4 py-1.5 border-y border-gray-200/70 bg-gray-50/90 text-xs text-gray-500 flex-shrink-0">
+            <div className="flex items-center gap-2 text-gray-600 font-medium text-[11px]">
+              <span className="w-2 h-2 rounded-full bg-blue-500" />
+              <span>Chat Belajar Interaktif</span>
+              {studentProfile.name && (
+                <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-medium">
+                  Profil: {studentProfile.name}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {/* If canvas has data and is closed, offer quick reopen button */}
+              {canvasData && !canvasOpen && (
+                <button
+                  type="button"
+                  onClick={() => setCanvasOpen(true)}
+                  className="px-2 py-0.5 rounded-full font-semibold transition text-[10px] sm:text-[11px] flex items-center gap-1 cursor-pointer bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100"
+                  title="Buka kembali Learning Canvas"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                  </svg>
+                  <span>Buka Canvas</span>
+                </button>
+              )}
+
+              <span className="text-[11px] font-medium text-gray-500">Mode Dev:</span>
               <button
+                type="button"
                 onClick={() => {
-                  const textarea = document.querySelector('textarea');
-                  if (textarea) textarea.focus();
+                  const nextVal = !devBypassLimit;
+                  setDevBypassLimit(nextVal);
+                  if (nextVal) setIsBlocked(false);
+                  localStorage.setItem('dev_bypass_chat_limit', String(nextVal));
                 }}
-                className="flex-1 max-w-sm mx-auto sm:mx-0 w-full sm:w-auto bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-120 p-4 sm:p-5 border border-gray-200 hover:border-blue-300 group text-left"
+                className={`px-2 py-0.5 rounded-full font-semibold transition text-[10px] sm:text-[11px] flex items-center gap-1.5 cursor-pointer ${
+                  devBypassLimit
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200'
+                    : 'bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200'
+                }`}
+                title="Klik untuk aktifkan / matikan batas 3 chat gratis"
               >
-                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-base mb-3 group-hover:scale-105 transition-transform">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                </div>
-                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">Tanya Apapun</h3>
-                <p className="text-gray-500 text-xs sm:text-sm mb-3">
-                  Tanya materi, rumus, konsep, atau kode pemrograman
-                </p>
-                <span className="text-xs font-semibold text-blue-600 group-hover:underline">
-                  Mulai Bertanya &rarr;
-                </span>
-              </button>
-
-              <button
-                onClick={handleLearningPathClick}
-                className="flex-1 max-w-sm mx-auto sm:mx-0 w-full sm:w-auto bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-120 p-4 sm:p-5 border border-purple-200 hover:border-purple-300 group text-left"
-              >
-                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-base mb-3 group-hover:scale-105 transition-transform">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                </div>
-                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">Learning Path</h3>
-                <p className="text-gray-500 text-xs sm:text-sm mb-3">
-                  Program belajar terstruktur Matematika & Informatika
-                </p>
-                <span className="text-xs font-semibold text-purple-600 group-hover:underline">
-                  Buka Jalur Belajar &rarr;
-                </span>
+                <span className={`w-1.5 h-1.5 rounded-full ${devBypassLimit ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                {devBypassLimit ? 'Batas Chat: OFF (Unlimited)' : 'Batas Chat: ON (Maks 3)'}
               </button>
             </div>
           </div>
-        )}
 
-        {/* Dev Mode Switch Bar */}
-        <div className="flex items-center justify-between px-4 py-1.5 border-y border-gray-200/70 bg-gray-50/90 text-xs text-gray-500 flex-shrink-0">
-          <div className="flex items-center gap-2 text-gray-600 font-medium text-[11px]">
-            <span className="w-2 h-2 rounded-full bg-blue-500" />
-            <span>Chat Belajar Interaktif</span>
-            {studentProfile.name && (
-              <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-medium">
-                Profil: {studentProfile.name}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-medium text-gray-500">Mode Dev:</span>
-            <button
-              type="button"
-              onClick={() => {
-                const nextVal = !devBypassLimit;
-                setDevBypassLimit(nextVal);
-                if (nextVal) setIsBlocked(false);
-                localStorage.setItem('dev_bypass_chat_limit', String(nextVal));
-              }}
-              className={`px-2 py-0.5 rounded-full font-semibold transition text-[10px] sm:text-[11px] flex items-center gap-1.5 cursor-pointer ${
-                devBypassLimit
-                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200'
-                  : 'bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200'
-              }`}
-              title="Klik untuk aktifkan / matikan batas 3 chat gratis"
-            >
-              <span className={`w-1.5 h-1.5 rounded-full ${devBypassLimit ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-              {devBypassLimit ? 'Batas Chat: OFF (Unlimited)' : 'Batas Chat: ON (Maks 3)'}
-            </button>
+          {/* Chat Container */}
+          <div className="flex-1 min-h-0 flex flex-col">
+            <ChatContainer
+              messages={messages}
+              message={message}
+              isLoading={isLoading}
+              mode="ask"
+              onMessageChange={setMessage}
+              onSendMessage={handleSendMessage}
+              selectedModelId={selectedModelId}
+              onModelChange={setSelectedModelId}
+              onOpenCanvas={(data) => { setCanvasData(data); setCanvasOpen(true); }}
+            />
           </div>
         </div>
 
-        {/* Chat Container - Shared Component */}
-        <ChatContainer
-          messages={messages}
-          message={message}
-          isLoading={isLoading}
-          mode="ask"
-          onMessageChange={setMessage}
-          onSendMessage={handleSendMessage}
-          selectedModelId={selectedModelId}
-          onModelChange={setSelectedModelId}
-          onOpenCanvas={(data) => { setCanvasData(data); setCanvasOpen(true); }}
-        />
+        {/* Right Column: Learning Canvas Layout Panel (Side-by-side, NOT a modal) */}
+        <aside
+          aria-label="Learning Canvas Panel"
+          className={`
+            fixed inset-0 z-30 md:static md:z-auto shrink-0 h-full bg-white flex flex-col
+            transition-[width,opacity] duration-300 ease-in-out
+            ${canvasOpen && canvasData
+              ? 'w-full md:w-[460px] lg:w-[500px] xl:w-[560px] border-l border-gray-200 opacity-100 shadow-xl md:shadow-none'
+              : 'w-0 border-l-0 opacity-0 pointer-events-none overflow-hidden hidden md:flex md:w-0'
+            }
+          `}
+        >
+          {canvasData && (
+            <div className="w-full md:w-[460px] lg:w-[500px] xl:w-[560px] h-full flex flex-col">
+              <LearningCanvas
+                data={canvasData}
+                isOpen={canvasOpen}
+                onClose={() => setCanvasOpen(false)}
+              />
+            </div>
+          )}
+        </aside>
       </div>
 
       <InitialQuestionsModal
@@ -665,18 +712,13 @@ export default function HomePage() {
         onDevBypass={handleDevBypass}
       />
 
-      <Mascot 
-        message={mascotMessage} 
-        mood={mascotMood}
-        showChat={true}
-      />
-
-      {/* Learning Canvas panel */}
-      <LearningCanvas
-        data={canvasData}
-        isOpen={canvasOpen}
-        onClose={() => setCanvasOpen(false)}
-      />
+      {!canvasOpen && (
+        <Mascot 
+          message={mascotMessage} 
+          mood={mascotMood}
+          showChat={true}
+        />
+      )}
     </MainLayout>
   );
 }

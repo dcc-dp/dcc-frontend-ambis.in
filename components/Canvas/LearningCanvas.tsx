@@ -151,35 +151,17 @@ export default function LearningCanvas({
   const accent = subjectAccent(data.subject);
 
   return (
-    <>
-      {/* Backdrop (mobile overlay) */}
+    <div
+      ref={panelRef}
+      role="region"
+      aria-label="Learning Canvas"
+      className="h-full w-full bg-white flex flex-col overflow-hidden"
+    >
+      {/* ── Header ─────────────────────────────────────────────────────── */}
       <div
-        className={`fixed inset-0 z-40 bg-black/30 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Panel */}
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Learning Canvas"
-        className={`
-          fixed top-0 right-0 z-50 h-full w-full sm:w-[480px] lg:w-[440px] xl:w-[500px]
-          bg-white border-l border-gray-200 shadow-2xl
-          flex flex-col
-          transition-transform duration-400 ease-out
-          ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-        `}
+        className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0"
+        style={{ background: `linear-gradient(135deg, ${accent}15 0%, #ffffff 100%)` }}
       >
-        {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div
-          className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0"
-          style={{ background: `linear-gradient(135deg, ${accent}15 0%, #ffffff 100%)` }}
-        >
           <div className="flex items-center gap-3 min-w-0">
             {/* Subject icon */}
             <div
@@ -405,7 +387,6 @@ export default function LearningCanvas({
           </button>
         </div>
       </div>
-    </>
   );
 }
 
