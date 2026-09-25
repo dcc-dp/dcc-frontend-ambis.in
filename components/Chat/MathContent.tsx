@@ -18,6 +18,18 @@ function stripEmojis(text: string): string {
     .trim();
 }
 
+// Normalize LaTeX delimiters:
+// Converts \[ ... \] to $$ ... $$ (display math)
+// Converts \( ... \) to $ ... $ (inline math)
+function normalizeMathDelimiters(text: string): string {
+  if (!text) return '';
+  // Convert display math \[ ... \] to $$ ... $$
+  let result = text.replace(/\\\[([\s\S]*?)\\\]/g, (_match, eq) => `$$${eq.trim()}$$`);
+  // Convert inline math \( ... \) to $ ... $
+  result = result.replace(/\\\(([\s\S]*?)\\\)/g, (_match, eq) => `$${eq.trim()}$`);
+  return result;
+}
+
 // Safely render KaTeX to HTML string using output: 'html'
 // (avoids hidden MathML duplicate layer that causes vertical text stacking)
 function renderKaTeX(latex: string, displayMode: boolean): string {
@@ -100,7 +112,7 @@ function renderInlineTokens(text: string, isUser: boolean) {
           key={`math-inline-${keyIndex++}`}
           className={`inline-flex items-center px-1.5 py-0.5 rounded font-serif whitespace-nowrap mx-0.5 align-middle text-xs sm:text-sm ${
             isUser
-              ? 'bg-blue-700/50 text-white'
+              ? 'bg-blue-700/60 text-white border border-blue-400/40 shadow-xs'
               : 'bg-blue-50/80 text-blue-900 border border-blue-200/50 shadow-2xs'
           }`}
           dangerouslySetInnerHTML={{ __html: html }}
@@ -109,7 +121,7 @@ function renderInlineTokens(text: string, isUser: boolean) {
     } else if (token.startsWith('**') && token.endsWith('**')) {
       const boldText = token.slice(2, -2);
       elements.push(
-        <strong key={`bold-${keyIndex++}`} className="font-bold text-gray-900">
+        <strong key={`bold-${keyIndex++}`} className={`font-bold ${isUser ? 'text-white' : 'text-gray-900'}`}>
           {renderInlineTokens(boldText, isUser)}
         </strong>
       );
@@ -125,7 +137,11 @@ function renderInlineTokens(text: string, isUser: boolean) {
       elements.push(
         <code
           key={`code-${keyIndex++}`}
-          className="px-1.5 py-0.5 rounded bg-gray-100 text-pink-600 font-mono text-xs border border-gray-200 mx-0.5"
+          className={`px-1.5 py-0.5 rounded font-mono text-xs mx-0.5 border ${
+            isUser
+              ? 'bg-blue-700/70 text-blue-100 border-blue-500/50'
+              : 'bg-gray-100 text-pink-600 border-gray-200'
+          }`}
         >
           {codeText}
         </code>
@@ -153,6 +169,9 @@ export default function MathContent({ content, isUser = false }: MathContentProp
   const blocks = useMemo(() => {
     if (!content) return [];
 
+    // Normalize LaTeX \( ... \) and \[ ... \] into standard $ and $$
+    const normalized = normalizeMathDelimiters(content);
+
     // Split content into distinct blocks:
     // 1. Code blocks: ```python ... ```
     // 2. Display math blocks: $$ ... $$
@@ -162,9 +181,9 @@ export default function MathContent({ content, isUser = false }: MathContentProp
     let lastIdx = 0;
     let m: RegExpExecArray | null;
 
-    while ((m = blockRegex.exec(content)) !== null) {
+    while ((m = blockRegex.exec(normalized)) !== null) {
       if (m.index > lastIdx) {
-        const textChunk = content.slice(lastIdx, m.index).trim();
+        const textChunk = normalized.slice(lastIdx, m.index).trim();
         if (textChunk) {
           rawBlocks.push({ type: 'text', content: textChunk });
         }
@@ -186,8 +205,8 @@ export default function MathContent({ content, isUser = false }: MathContentProp
       lastIdx = blockRegex.lastIndex;
     }
 
-    if (lastIdx < content.length) {
-      const remaining = content.slice(lastIdx).trim();
+    if (lastIdx < normalized.length) {
+      const remaining = normalized.slice(lastIdx).trim();
       if (remaining) {
         rawBlocks.push({ type: 'text', content: remaining });
       }
@@ -196,16 +215,8 @@ export default function MathContent({ content, isUser = false }: MathContentProp
     return rawBlocks;
   }, [content]);
 
-  if (isUser) {
-    return (
-      <div className="text-sm leading-relaxed whitespace-pre-wrap">
-        {stripEmojis(content)}
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-2.5 text-sm leading-relaxed text-gray-800">
+    <div className={`space-y-2.5 text-sm leading-relaxed ${isUser ? 'text-white' : 'text-gray-800'}`}>
       {blocks.map((block, idx) => {
         // 1. Render Code Block
         if (block.type === 'code') {
@@ -221,6 +232,17 @@ export default function MathContent({ content, isUser = false }: MathContentProp
         // 2. Render Math Block Card (No emojis)
         if (block.type === 'math') {
           const html = renderKaTeX(block.content, true);
+
+          if (isUser) {
+            return (
+              <div
+                key={`block-math-${idx}`}
+                className="my-2 overflow-x-auto rounded-lg bg-blue-700/60 border border-blue-400/30 p-2.5 text-center text-white"
+                dangerouslySetInnerHTML={{ __html: html }}
+              />
+            );
+          }
+
           return (
             <div
               key={`block-math-${idx}`}
@@ -256,14 +278,14 @@ export default function MathContent({ content, isUser = false }: MathContentProp
                 return (
                   <hr
                     key={`hr-${lineIdx}`}
-                    className="my-2.5 border-t border-gray-200"
+                    className={`my-2.5 border-t ${isUser ? 'border-blue-400/40' : 'border-gray-200'}`}
                   />
                 );
               }
 
               // B. Headings: catches ###, ##, # with or without space and with emojis attached
               const headingMatch = trimmed.match(/^(#{1,6})\s*(.*)$/);
-              if (headingMatch) {
+              if (headingMatch && !isUser) {
                 const level = headingMatch[1].length;
                 const rawTitle = headingMatch[2];
                 const cleanTitle = stripEmojis(rawTitle).replace(/^[:\s-]+/, '');
@@ -300,7 +322,7 @@ export default function MathContent({ content, isUser = false }: MathContentProp
 
               // C. Step detection: e.g. **Langkah 1: ...** or Langkah 1:
               const stepMatch = trimmed.match(/^(\*\*Langkah\s+\d+[:\.]?|\bLangkah\s+\d+[:\.]?)(.*)$/i);
-              if (stepMatch) {
+              if (stepMatch && !isUser) {
                 const stepLabel = stepMatch[1].replace(/\*\*/g, '').trim();
                 const stepDesc = stepMatch[2].replace(/\*\*/g, '').replace(/^[:\s-]+/, '').trim();
                 return (
@@ -322,7 +344,7 @@ export default function MathContent({ content, isUser = false }: MathContentProp
 
               // D. Conclusion detection: e.g. "Jadi, ..." or "Kesimpulan: ..." (No emojis)
               const isConclusion = /^(Jadi,|Kesimpulan:|Maka,)/i.test(trimmed);
-              if (isConclusion) {
+              if (isConclusion && !isUser) {
                 return (
                   <div
                     key={`conclusion-${lineIdx}`}
@@ -343,7 +365,7 @@ export default function MathContent({ content, isUser = false }: MathContentProp
                 const bulletText = trimmed.replace(/^[-*]\s+/, '');
                 return (
                   <div key={`bullet-${lineIdx}`} className="flex items-start gap-2 pl-2 my-0.5">
-                    <span className="text-blue-500 font-bold shrink-0 mt-0.5">•</span>
+                    <span className={`font-bold shrink-0 mt-0.5 ${isUser ? 'text-blue-200' : 'text-blue-500'}`}>•</span>
                     <div className="flex-1">
                       {renderInlineTokens(bulletText, isUser)}
                     </div>
@@ -356,7 +378,11 @@ export default function MathContent({ content, isUser = false }: MathContentProp
               if (numMatch) {
                 return (
                   <div key={`num-${lineIdx}`} className="flex items-start gap-2 pl-2 my-0.5">
-                    <span className="text-blue-600 font-semibold text-xs shrink-0 mt-0.5 bg-blue-50 px-1.5 py-0.2 rounded-full border border-blue-200/60">
+                    <span className={`font-semibold text-xs shrink-0 mt-0.5 px-1.5 py-0.2 rounded-full border ${
+                      isUser
+                        ? 'bg-blue-700/60 text-white border-blue-400/40'
+                        : 'bg-blue-50 text-blue-600 border-blue-200/60'
+                    }`}>
                       {numMatch[1]}
                     </span>
                     <div className="flex-1">
