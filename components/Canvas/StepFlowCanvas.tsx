@@ -161,7 +161,7 @@ export default function StepFlowCanvas({
           const isCompleted = idx < activeStep;
 
           return (
-            <div key={step.number} className="flex flex-col items-center">
+            <div key={`step-node-${idx}-${step.number}`} className="flex flex-col items-center">
               {/* Step Node Card */}
               <div
                 onClick={() => {
