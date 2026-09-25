@@ -23,7 +23,20 @@ interface ChatHistory {
   type: 'ask' | 'learning-path';
 }
 
+interface StudentProfile {
+  studentId: string;
+  name?: string;
+  grade?: string;
+  goal?: string;
+  topic?: string;
+  subtopic?: string;
+  difficulty?: string;
+  facts?: string[];
+}
+
 const CHAT_HISTORY_KEY = 'ambisin_chat_history';
+const STUDENT_PROFILE_KEY = 'ambisin_student_profile';
+const DEFAULT_STUDENT_ID = '00000000-0000-0000-0000-000000000901';
 
 function loadChatHistory(filterType?: 'ask' | 'learning-path'): ChatHistory[] {
   try {
@@ -69,9 +82,12 @@ export default function HomePage() {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [isBlocked, setIsBlocked] = useState(false);
   const [devBypassLimit, setDevBypassLimit] = useState<boolean>(true);
-  const [mascotMessage, setMascotMessage] = useState('Halo! Saya asisten belajar Anda 🎓');
+  const [mascotMessage, setMascotMessage] = useState('Halo! Kak Ambis siap membantu belajarmu');
   const [mascotMood, setMascotMood] = useState<'happy' | 'thinking' | 'waving' | 'idle'>('waving');
   const [selectedModelId, setSelectedModelId] = useState<string>('gemini/gemini-3.5-flash-lite');
+  const [studentProfile, setStudentProfile] = useState<StudentProfile>({
+    studentId: DEFAULT_STUDENT_ID,
+  });
   const hasLoaded = useRef(false);
   const isSaving = useRef(false);
 
@@ -82,13 +98,45 @@ export default function HomePage() {
     const history = loadChatHistory('ask');
     setChatHistory(history);
 
-    // Load saved model selection (fallback to 9router default if old model)
+    // 1. Load saved model selection
     const savedModel = localStorage.getItem(MODEL_STORAGE_KEY);
     if (savedModel && !savedModel.includes('llama-3.3') && !savedModel.includes('compound')) {
       setSelectedModelId(savedModel);
     } else {
       setSelectedModelId('gemini/gemini-3.5-flash-lite');
     }
+
+    // 2. Load persistent student profile from localStorage
+    let activeProfile: StudentProfile = { studentId: DEFAULT_STUDENT_ID };
+    try {
+      const storedProfile = localStorage.getItem(STUDENT_PROFILE_KEY);
+      if (storedProfile) {
+        activeProfile = { ...activeProfile, ...JSON.parse(storedProfile) };
+      }
+    } catch (e) {
+      console.warn('Error reading student profile:', e);
+    }
+    setStudentProfile(activeProfile);
+
+    // 3. Sync student memory with PostgreSQL DB
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+    fetch(`${baseUrl}/api/v1/chat/memory?student_id=${activeProfile.studentId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((dbData) => {
+        if (dbData && dbData.name) {
+          setStudentProfile((prev) => {
+            const merged = {
+              ...prev,
+              name: prev.name || dbData.name,
+              grade: prev.grade || dbData.grade,
+              facts: dbData.facts || prev.facts,
+            };
+            localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(merged));
+            return merged;
+          });
+        }
+      })
+      .catch(() => {});
 
     const stored = localStorage.getItem('hasCompletedInitialQuestions');
     if (stored === 'true') {
@@ -134,11 +182,45 @@ export default function HomePage() {
     localStorage.setItem('dev_bypass_chat_limit', 'true');
   };
 
-  const handleInitialQuestionsSubmit = (answers: { goal: string; topic: string; subtopic: string; difficulty: string }) => {
+  const handleInitialQuestionsSubmit = async (answers: {
+    name?: string;
+    goal: string;
+    topic: string;
+    subtopic: string;
+    difficulty: string;
+  }) => {
     localStorage.setItem('hasCompletedInitialQuestions', 'true');
     localStorage.setItem('initialAnswers', JSON.stringify(answers));
     setHasAnsweredQuestions(true);
     setShowInitialModal(false);
+
+    const updatedProfile: StudentProfile = {
+      ...studentProfile,
+      name: answers.name?.trim() || studentProfile.name,
+      goal: answers.goal,
+      topic: answers.topic,
+      subtopic: answers.subtopic,
+      difficulty: answers.difficulty,
+    };
+    setStudentProfile(updatedProfile);
+    localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(updatedProfile));
+
+    // Sinkronisasi memori ke database PostgreSQL
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+      await fetch(`${baseUrl}/api/v1/chat/memory`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: updatedProfile.studentId,
+          name: updatedProfile.name,
+          goal: updatedProfile.goal,
+          topic: updatedProfile.topic,
+        }),
+      });
+    } catch (err) {
+      console.warn('Sync memory to backend skipped:', err);
+    }
   };
 
   const handleSendMessage = async () => {
@@ -149,24 +231,39 @@ export default function HomePage() {
       return;
     }
 
+    const currentMessage = message.trim();
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: message,
+      content: currentMessage,
       createdAt: new Date(),
     };
 
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
-    const currentMessage = message;
     setMessage('');
     setIsLoading(true);
     setChatCount((prev) => prev + 1);
 
+    // Deteksi perkenalan nama langsung di sisi klien
+    let activeName = studentProfile.name;
+    const introMatch = currentMessage.match(
+      /(?:(?:nama\s+(?:saya|aku|ku)|namaku)\s*(?:adalah\s*)?|panggil\s+(?:aku|saja)\s+)([A-Za-z][A-Za-z0-9_\s]{1,25})/i
+    );
+    if (introMatch && introMatch[1]) {
+      const detected = introMatch[1].trim();
+      if (detected) {
+        activeName = detected;
+        const updated = { ...studentProfile, name: detected };
+        setStudentProfile(updated);
+        localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(updated));
+      }
+    }
+
     const chatId = currentChatId || Date.now().toString();
     if (!currentChatId) {
       setCurrentChatId(chatId);
-      const title = message.slice(0, 40) + (message.length > 40 ? '...' : '');
+      const title = currentMessage.slice(0, 40) + (currentMessage.length > 40 ? '...' : '');
       const newHistory: ChatHistory = {
         id: chatId,
         title,
@@ -195,14 +292,8 @@ export default function HomePage() {
       setMascotMood('thinking');
       setMascotMessage('Kak Ambis sedang memikirkan jawaban untukmu...');
       setIsLoading(true);
-      // 1. Ambil profil belajar siswa dari localStorage
-      let studentProfile: any = null;
-      try {
-        const rawAnswers = localStorage.getItem('initialAnswers');
-        if (rawAnswers) studentProfile = JSON.parse(rawAnswers);
-      } catch {}
 
-      // 2. Ambil ringkasan sesi-sesi percakapan terdahulu (cross-session memory)
+      // Ambil ringkasan sesi-sesi percakapan terdahulu (cross-session memory)
       const previousSessions = chatHistory
         .filter((c) => c.id !== (currentChatId || '') && c.messages && c.messages.length > 0)
         .slice(0, 8)
@@ -211,15 +302,20 @@ export default function HomePage() {
           return `Sesi "${c.title}": Pernah menanyakan "${firstUserMsg}"`;
         });
 
+      // Konteks siswa lengkap dengan identitas persisten
       const studentContext = {
-        goal: studentProfile?.goal,
-        topic: studentProfile?.topic,
-        subtopic: studentProfile?.subtopic,
-        difficulty: studentProfile?.difficulty,
+        student_id: studentProfile.studentId || DEFAULT_STUDENT_ID,
+        name: activeName,
+        grade: studentProfile.grade,
+        goal: studentProfile.goal,
+        topic: studentProfile.topic,
+        subtopic: studentProfile.subtopic,
+        difficulty: studentProfile.difficulty,
+        facts: studentProfile.facts,
         previous_sessions: previousSessions.length > 0 ? previousSessions : undefined,
       };
 
-      // 3. Sertakan 1 sesi chat penuh (hingga 50 pesan terakhir dalam sesi ini)
+      // Sertakan 1 sesi chat penuh (hingga 50 pesan terakhir dalam sesi ini)
       const sessionMessages = updatedMessages.slice(-50).map((m) => ({
         role: m.role,
         content: m.content,
@@ -282,13 +378,32 @@ export default function HomePage() {
                     assistantText.slice(0, 60) +
                       (assistantText.length > 60 ? '...' : '')
                   );
+                } else if (eventType === 'memory') {
+                  // Perbarui memori siswa secara real-time dari respon backend
+                  if (data.name) {
+                    setStudentProfile((prev) => {
+                      const updated = {
+                        ...prev,
+                        name: data.name,
+                        grade: data.grade || prev.grade,
+                      };
+                      localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(updated));
+                      return updated;
+                    });
+                  }
                 } else if (eventType === 'thinking') {
                   setMascotMessage(data.status || 'sedang memproses...');
                 } else if (eventType === 'done') {
                   setMascotMood('happy');
-                  setMascotMessage(
-                    'Semoga penjelasan Kak Ambis membantu ya! 🌟'
-                  );
+                  setMascotMessage('Semoga penjelasan Kak Ambis membantu belajarmu.');
+                  if (data.student_name) {
+                    setStudentProfile((prev) => {
+                      if (prev.name === data.student_name) return prev;
+                      const updated = { ...prev, name: data.student_name };
+                      localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(updated));
+                      return updated;
+                    });
+                  }
                 } else if (eventType === 'error') {
                   assistantText =
                     `Maaf, terjadi kendala: ${data.message || 'tidak diketahui'}`;
@@ -357,6 +472,7 @@ export default function HomePage() {
     setMessage('');
     setCurrentChatId(null);
     setIsBlocked(false);
+    // StudentProfile (termasuk nama) sengaja dipertahankan agar Kak Ambis tetap mengenalnya di sesi baru!
   };
 
   const handleSelectChat = (chatId: string) => {
@@ -393,10 +509,12 @@ export default function HomePage() {
         {messages.length === 0 && (
           <div className="text-center py-4 md:py-6 px-4 flex-shrink-0">
             <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">
-              Halo! Apa yang ingin kamu lakukan hari ini?
+              {studentProfile.name ? `Halo, ${studentProfile.name}!` : 'Halo! Apa yang ingin kamu lakukan hari ini?'}
             </h1>
             <p className="text-gray-500 text-xs md:text-sm">
-              Pilih fitur atau langsung ketik pesan di bawah
+              {studentProfile.name
+                ? 'Kak Ambis siap melanjutkan sesi belajarmu hari ini.'
+                : 'Pilih fitur atau langsung ketik pesan di bawah'}
             </p>
           </div>
         )}
@@ -411,34 +529,38 @@ export default function HomePage() {
                   const textarea = document.querySelector('textarea');
                   if (textarea) textarea.focus();
                 }}
-                className="flex-1 max-w-sm mx-auto sm:mx-0 w-full sm:w-auto bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-120 p-4 sm:p-6 border border-gray-200 hover:border-blue-300 group"
+                className="flex-1 max-w-sm mx-auto sm:mx-0 w-full sm:w-auto bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-120 p-4 sm:p-5 border border-gray-200 hover:border-blue-300 group text-left"
               >
-                <div className="text-3xl sm:text-4xl mb-2 sm:mb-4 group-hover:scale-110 transition-transform">
-                  💬
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-base mb-3 group-hover:scale-105 transition-transform">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2">Tanya Apapun</h3>
-                <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-4">
-                  Bertanya tentang topik apapun yang kamu inginkan
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">Tanya Apapun</h3>
+                <p className="text-gray-500 text-xs sm:text-sm mb-3">
+                  Tanya materi, rumus, konsep, atau kode pemrograman
                 </p>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs sm:text-sm font-medium group-hover:bg-blue-700 transition-colors">
-                  ?
-                </div>
+                <span className="text-xs font-semibold text-blue-600 group-hover:underline">
+                  Mulai Bertanya &rarr;
+                </span>
               </button>
 
               <button
                 onClick={handleLearningPathClick}
-                className="flex-1 max-w-sm mx-auto sm:mx-0 w-full sm:w-auto bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-120 p-4 sm:p-6 border border-purple-300 hover:border-purple-400 group"
+                className="flex-1 max-w-sm mx-auto sm:mx-0 w-full sm:w-auto bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-120 p-4 sm:p-5 border border-purple-200 hover:border-purple-300 group text-left"
               >
-                <div className="text-3xl sm:text-4xl mb-2 sm:mb-4 group-hover:scale-110 transition-transform">
-                  📚
+                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-base mb-3 group-hover:scale-105 transition-transform">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2">Learning Path</h3>
-                <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-4">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">Learning Path</h3>
+                <p className="text-gray-500 text-xs sm:text-sm mb-3">
                   Program belajar terstruktur Matematika & Informatika
                 </p>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-xs sm:text-sm font-medium group-hover:bg-purple-700 transition-colors">
-                  📖
-                </div>
+                <span className="text-xs font-semibold text-purple-600 group-hover:underline">
+                  Buka Jalur Belajar &rarr;
+                </span>
               </button>
             </div>
           </div>
@@ -446,12 +568,17 @@ export default function HomePage() {
 
         {/* Dev Mode Switch Bar */}
         <div className="flex items-center justify-between px-4 py-1.5 border-y border-gray-200/70 bg-gray-50/90 text-xs text-gray-500 flex-shrink-0">
-          <div className="flex items-center gap-1.5 text-gray-600 font-medium text-[11px]">
+          <div className="flex items-center gap-2 text-gray-600 font-medium text-[11px]">
             <span className="w-2 h-2 rounded-full bg-blue-500" />
             <span>Chat Belajar Interaktif</span>
+            {studentProfile.name && (
+              <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-medium">
+                Profil: {studentProfile.name}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-medium text-gray-500">⚡ Mode Dev:</span>
+            <span className="text-[11px] font-medium text-gray-500">Mode Dev:</span>
             <button
               type="button"
               onClick={() => {
