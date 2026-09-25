@@ -7,12 +7,15 @@ import { InitialQuestionsModal } from '@/components/Modal/InitialQuestionsModal'
 import { LoginPromptModal } from '@/components/Modal/LoginPromptModal';
 import Mascot from '@/components/Mascot/Mascot';
 import { MODEL_STORAGE_KEY } from '@/components/Chat/ModelSelector';
+import LearningCanvas from '@/components/Canvas/LearningCanvas';
+import type { CanvasData } from '@/components/Canvas/LearningCanvas';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   createdAt: Date;
+  canvasData?: CanvasData;
 }
 
 interface ChatHistory {
@@ -104,6 +107,8 @@ export default function HomePage() {
   const [studentProfile, setStudentProfile] = useState<StudentProfile>({
     studentId: DEFAULT_STUDENT_ID,
   });
+  const [canvasOpen, setCanvasOpen] = useState(false);
+  const [canvasData, setCanvasData] = useState<CanvasData | null>(null);
   const hasLoaded = useRef(false);
   const isSaving = useRef(false);
 
@@ -371,6 +376,7 @@ export default function HomePage() {
       }
 
       let assistantText = '';
+      let pendingCanvasData: CanvasData | null = null;
       if (response.ok) {
         const reader = response.body?.getReader();
         const decoder = new TextDecoder('utf-8');
@@ -415,6 +421,13 @@ export default function HomePage() {
                       return updated;
                     });
                   }
+                } else if (eventType === 'canvas') {
+                  // Open Learning Canvas with structured payload
+                  try {
+                    pendingCanvasData = data as CanvasData;
+                    setCanvasData(pendingCanvasData);
+                    setCanvasOpen(true);
+                  } catch {}
                 } else if (eventType === 'thinking') {
                   setMascotMessage(data.status || 'sedang memproses...');
                 } else if (eventType === 'done') {
@@ -457,6 +470,7 @@ export default function HomePage() {
         role: 'assistant',
         content: assistantText,
         createdAt: new Date(),
+        canvasData: pendingCanvasData || undefined,
       };
       const finalMessages = [...updatedMessages, assistantMessage];
       setMessages(finalMessages);
@@ -634,6 +648,7 @@ export default function HomePage() {
           onSendMessage={handleSendMessage}
           selectedModelId={selectedModelId}
           onModelChange={setSelectedModelId}
+          onOpenCanvas={(data) => { setCanvasData(data); setCanvasOpen(true); }}
         />
       </div>
 
@@ -654,6 +669,13 @@ export default function HomePage() {
         message={mascotMessage} 
         mood={mascotMood}
         showChat={true}
+      />
+
+      {/* Learning Canvas panel */}
+      <LearningCanvas
+        data={canvasData}
+        isOpen={canvasOpen}
+        onClose={() => setCanvasOpen(false)}
       />
     </MainLayout>
   );

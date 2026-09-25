@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import MessageList from '@/components/Chat/MessageList';
+import type { CanvasData } from '@/components/Canvas/LearningCanvas';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   createdAt: Date;
+  canvasData?: CanvasData;
 }
 
 interface ChatContainerProps {
@@ -21,6 +23,7 @@ interface ChatContainerProps {
   onSendMessage: (overrideMsg?: string) => void;
   selectedModelId?: string;
   onModelChange?: (modelId: string) => void;
+  onOpenCanvas?: (data: CanvasData) => void;
 }
 
 export default function ChatContainer({
@@ -34,6 +37,7 @@ export default function ChatContainer({
   onSendMessage,
   selectedModelId = 'gemini/gemini-3.5-flash-lite',
   onModelChange,
+  onOpenCanvas,
 }: ChatContainerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -57,7 +61,7 @@ export default function ChatContainer({
     <div className="flex flex-col h-full">
       {/* Message List - dynamic, scrollable */}
       <div className="flex-1 overflow-y-auto px-4 space-y-4">
-        <MessageList messages={messages} mode={mode} />
+        <MessageList messages={messages} mode={mode} onOpenCanvas={onOpenCanvas} />
         {isLoading && (
           <div className="flex justify-start">
             <div className="bg-gray-100 rounded-2xl px-4 py-3 rounded-bl-none">
