@@ -71,7 +71,7 @@ export default function HomePage() {
   const [devBypassLimit, setDevBypassLimit] = useState<boolean>(true);
   const [mascotMessage, setMascotMessage] = useState('Halo! Saya asisten belajar Anda 🎓');
   const [mascotMood, setMascotMood] = useState<'happy' | 'thinking' | 'waving' | 'idle'>('waving');
-  const [selectedModelId, setSelectedModelId] = useState<string>('groq/llama-3.3-70b-versatile');
+  const [selectedModelId, setSelectedModelId] = useState<string>('gemini/gemini-3.5-flash-lite');
   const hasLoaded = useRef(false);
   const isSaving = useRef(false);
 
@@ -82,9 +82,13 @@ export default function HomePage() {
     const history = loadChatHistory('ask');
     setChatHistory(history);
 
-    // Load saved model selection
+    // Load saved model selection (fallback to 9router default if old model)
     const savedModel = localStorage.getItem(MODEL_STORAGE_KEY);
-    if (savedModel) setSelectedModelId(savedModel);
+    if (savedModel && !savedModel.includes('llama-3.3') && !savedModel.includes('compound')) {
+      setSelectedModelId(savedModel);
+    } else {
+      setSelectedModelId('gemini/gemini-3.5-flash-lite');
+    }
 
     const stored = localStorage.getItem('hasCompletedInitialQuestions');
     if (stored === 'true') {

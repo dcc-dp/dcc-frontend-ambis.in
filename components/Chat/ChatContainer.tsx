@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import MessageList from '@/components/Chat/MessageList';
-import ModelSelector from '@/components/Chat/ModelSelector';
 
 interface Message {
   id: string;
@@ -33,7 +32,7 @@ export default function ChatContainer({
   onQuickPromptClick,
   onMessageChange,
   onSendMessage,
-  selectedModelId = 'groq/llama-3.3-70b-versatile',
+  selectedModelId = 'gemini/gemini-3.5-flash-lite',
   onModelChange,
 }: ChatContainerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -93,15 +92,8 @@ export default function ChatContainer({
             </div>
           )}
 
-          {/* Model Selector + Input Row */}
-          <div className="flex items-center gap-2 mb-2">
-            {onModelChange && (
-              <ModelSelector
-                selectedModelId={selectedModelId}
-                onModelChange={onModelChange}
-              />
-            )}
-            <div className="flex-1" />
+          {/* Input Header Row */}
+          <div className="flex items-center justify-end mb-2">
             <span className="text-[10px] text-gray-400 hidden sm:block">
               Shift+Enter untuk baris baru
             </span>
