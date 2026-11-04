@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 
 export interface PracticeOption {
   key: string;
@@ -17,6 +17,7 @@ interface AnswerBoxProps {
 export default function AnswerBox({ kind, options, disabled, onSubmit }: AnswerBoxProps) {
   const [text, setText] = useState('');
   const [picked, setPicked] = useState<string | null>(null);
+  const groupName = useId();
 
   const isChoice = kind === 'mcq' && options && options.length > 0;
   const answer = isChoice ? picked : text.trim();
@@ -29,33 +30,45 @@ export default function AnswerBox({ kind, options, disabled, onSubmit }: AnswerB
   };
 
   return (
-    <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4">
+    <div className="space-y-4">
       {isChoice ? (
-        <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Pilihan jawaban">
+        <fieldset className="grid min-w-0 gap-2">
+          <legend className="mb-2">
+            <span className="inline-block rounded-sm bg-mark px-1 text-sm font-semibold text-ink">Pilih jawabanmu</span>
+          </legend>
           {options.map((option) => (
-            <button
+            <label
               key={option.key}
-              type="button"
-              role="radio"
-              aria-checked={picked === option.key}
-              disabled={disabled}
-              onClick={() => setPicked(option.key)}
-              className={`flex items-center gap-3 rounded-xl border-2 px-3.5 py-3 text-left text-base transition disabled:opacity-60 ${
+              className={`flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-lg bg-card px-4 py-2 text-left text-lg font-semibold text-ink transition-colors duration-150 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ${
                 picked === option.key
-                  ? 'border-indigo-500 bg-indigo-50 text-indigo-900'
-                  : 'border-gray-200 bg-white text-gray-800 hover:border-indigo-300'
+                  ? 'border-2 border-accent bg-accent-soft'
+                  : 'border-[1.5px] border-edge hover:bg-paper-deep'
               }`}
             >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-700">
-                {option.key}
-              </span>
-              <span>{option.label}</span>
-            </button>
+              <input
+                type="radio"
+                name={groupName}
+                value={option.key}
+                checked={picked === option.key}
+                disabled={disabled}
+                onChange={() => setPicked(option.key)}
+                className="sr-only"
+              />
+              <span className="shrink-0 font-bold text-accent">{option.key}.</span>
+              <span className="flex-1">{option.label}</span>
+              {picked === option.key && (
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-accent-ink" aria-hidden="true">
+                  <path d="M5 12.5l4.5 4.5L19 7.5" />
+                </svg>
+              )}
+            </label>
           ))}
-        </div>
+        </fieldset>
       ) : (
         <label className="block">
-          <span className="mb-1.5 block text-sm font-semibold text-gray-700">Jawabanmu</span>
+          <span className="mb-1.5 block">
+            <span className="inline-block rounded-sm bg-mark px-1 text-sm font-semibold text-ink">Jawabanmu</span>
+          </span>
           <input
             value={text}
             disabled={disabled}
@@ -65,7 +78,7 @@ export default function AnswerBox({ kind, options, disabled, onSubmit }: AnswerB
             }}
             maxLength={2000}
             placeholder="Contoh: 3/4"
-            className="w-full rounded-xl border-2 border-gray-200 px-3.5 py-2.5 text-lg text-gray-900 outline-none focus:border-indigo-500 disabled:opacity-60"
+            className="focus-pop min-h-12 w-full rounded-lg border-[1.5px] border-edge bg-card px-3.5 py-2 text-[22px] text-ink placeholder:text-ink-softtransition-colors duration-150 focus:border-accent focus:ring-[0.5px] focus:ring-accent disabled:bg-paper-deep disabled:opacity-60"
           />
         </label>
       )}
@@ -74,9 +87,9 @@ export default function AnswerBox({ kind, options, disabled, onSubmit }: AnswerB
         type="button"
         disabled={!canSend}
         onClick={send}
-        className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-base font-bold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+        className="focus-pop min-h-12 w-full rounded-lg border border-transparent bg-accent px-4 text-lg font-semibold text-white transition duration-150 hover:bg-accent-ink active:scale-[.98] disabled:cursor-not-allowed disabled:border-line disabled:bg-paper-deep disabled:text-ink-soft disabled:active:scale-100"
       >
-        {disabled ? 'Memeriksa jawabanmu...' : 'Kirim jawaban'}
+        {disabled ? 'Sedang memeriksa' : 'Kirim jawaban'}
       </button>
     </div>
   );
