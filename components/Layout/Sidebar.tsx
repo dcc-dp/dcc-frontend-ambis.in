@@ -202,6 +202,15 @@ export default function Sidebar({ isOpen = true, onToggle, onNewChat, onSelectCh
             </svg>
             {isOpen && <span>Learning Path</span>}
           </button>
+          <a
+            href="/dashboard/canvas"
+            className="w-full flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-gray-200 rounded-lg transition font-medium text-sm group"
+          >
+            <svg className="w-5 h-5 flex-shrink-0 text-gray-500 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v10a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm4 15h8m-4-4v4" />
+            </svg>
+            {isOpen && <span>Kanvas Latihan</span>}
+          </a>
         </div>
       </aside>
     </>
