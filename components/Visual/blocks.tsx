@@ -13,48 +13,64 @@ import {
   type StepFlowBlock,
 } from '@/lib/visualSpec';
 
-const NOTE_STYLES: Record<NoteBlock['tone'], string> = {
-  info: 'border-blue-200 bg-blue-50 text-blue-900',
-  warn: 'border-amber-200 bg-amber-50 text-amber-900',
-  success: 'border-emerald-200 bg-emerald-50 text-emerald-900',
+const GRID_BG = {
+  backgroundColor: '#FFFDF8',
+  backgroundImage:
+    'repeating-linear-gradient(0deg, transparent 0 23px, #EAE0C8 23px 24px), repeating-linear-gradient(90deg, transparent 0 23px, #EAE0C8 23px 24px)',
 };
 
+const INK = '#2A2722';
+const ACCENT = '#2F4FA8';
+const ACCENT_INK = '#223A80';
+const MARK = '#F7D86A';
+
+const NOTE_META: Record<NoteBlock['tone'], { style: string; label: string }> = {
+  info: { style: 'bg-accent-soft', label: 'Catatan:' },
+  warn: { style: 'bg-attention-soft', label: 'Perhatikan:' },
+  success: { style: 'bg-correct-soft', label: 'Sudah benar:' },
+};
+
+const HATCH_IMAGE = 'repeating-linear-gradient(135deg, rgba(42,39,34,0.25) 0 2px, transparent 2px 7px)';
+
 export function NoteView({ block }: { block: NoteBlock }) {
+  const meta = NOTE_META[block.tone];
   return (
-    <div className={`rounded-2xl border px-4 py-3 text-base leading-relaxed ${NOTE_STYLES[block.tone]}`}>
-      <RichText text={block.text} />
+    <div className={`max-w-[60ch] rounded-md p-4 text-[18px] leading-[1.65] text-ink ${meta.style}`}>
+      <strong className="font-bold">{meta.label}</strong> <RichText text={block.text} />
     </div>
   );
 }
 
 export function FractionBarView({ block }: { block: FractionBarBlock }) {
   return (
-    <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4">
+    <div className="space-y-3">
       {block.rows.map((row, index) => {
         const align = block.align_denominator;
         const cells = align ?? row.denominator;
         const shaded = align ? Math.round((row.numerator * align) / row.denominator) : row.numerator;
         return (
           <div key={`${row.label}-${index}`} className="flex items-center gap-3">
-            <div className="w-14 shrink-0 text-center text-base text-gray-800">
+            <div className="min-w-14 shrink-0 text-xl font-semibold tabular-nums text-ink">
               <RichText text={row.label || `${row.numerator}/${row.denominator}`} />
             </div>
-            <div className="flex h-9 flex-1 overflow-hidden rounded-lg border-2 border-indigo-500">
-              {Array.from({ length: cells }, (_, i) => (
-                <div
-                  key={i}
-                  className={`flex-1 border-r border-indigo-300 last:border-r-0 transition-colors ${
-                    i < shaded ? 'bg-indigo-500' : 'bg-indigo-50'
-                  }`}
-                />
-              ))}
+            <div className="flex h-10 flex-1 overflow-hidden rounded-sm border-[1.5px] border-ink bg-card">
+              {Array.from({ length: cells }, (_, i) => {
+                const isShaded = i < shaded;
+                return (
+                  <div
+                    key={i}
+                    className={`flex-1 border-r-[1.5px] border-ink last:border-r-0 ${isShaded ? 'animate-cell-in bg-accent-fill' : 'bg-card'}`}
+                    style={isShaded ? { animationDelay: `${Math.min(i, 7) * 60}ms`, backgroundImage: HATCH_IMAGE } : undefined}
+                  />
+                );
+              })}
             </div>
           </div>
         );
       })}
       {block.align_denominator && (
-        <p className="text-center text-xs text-gray-500">
-          Semua batang dipotong menjadi {block.align_denominator} bagian sama besar
+        <p className="text-[17px] text-ink-soft">
+          Semua batang dibagi menjadi {block.align_denominator} bagian sama besar.
         </p>
       )}
     </div>
@@ -66,29 +82,43 @@ export function NumberLineView({ block }: { block: NumberLineBlock }) {
   const lo = fractionValue(block.start) ?? 0;
   const hi = fractionValue(block.end) ?? 1;
   const width = 600;
-  const padX = 32;
-  const lineY = 84;
-  const x = (value: number) => padX + ((value - lo) / (hi - lo)) * (width - 2 * padX);
+  const padX = 40;
+  const lineY = 110;
+  const span = hi - lo || 1;
+  const x = (value: number) => padX + ((Math.max(lo, Math.min(hi, value)) - lo) / span) * (width - 2 * padX);
+
+  const pointItems = block.points
+    .map((point, index) => ({ point, index, value: fractionValue(point.at) }))
+    .filter((item): item is { point: typeof item.point; index: number; value: number } => item.value !== null)
+    .sort((a, b) => a.value - b.value);
+  const labelGap = 74;
+  const labelX = pointItems.map((item) => Math.max(padX, Math.min(width - padX, x(item.value))));
+  for (let i = 1; i < labelX.length; i += 1) labelX[i] = Math.max(labelX[i], labelX[i - 1] + labelGap);
+  for (let i = labelX.length - 2; i >= 0; i -= 1) labelX[i] = Math.min(labelX[i], labelX[i + 1] - labelGap);
+  if (labelX.length && labelX[0] < padX) {
+    labelX[0] = padX;
+    for (let i = 1; i < labelX.length; i += 1) labelX[i] = Math.max(labelX[i], labelX[i - 1] + labelGap);
+  }
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-3">
-      <svg viewBox={`0 0 ${width} 130`} className="w-full" role="img" aria-label="Garis bilangan">
+    <div className="p-2" style={GRID_BG}>
+      <svg viewBox={`0 0 ${width} 200`} className="w-full" role="img" aria-label={`Garis bilangan dari ${block.start} sampai ${block.end}`}>
         <defs>
           <marker id={markerId} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="#4f46e5" />
+            <path d="M 0 0 L 10 5 L 0 10 z" fill={ACCENT} />
           </marker>
         </defs>
 
-        <line x1={padX} x2={width - padX} y1={lineY} y2={lineY} stroke="#475569" strokeWidth={3} strokeLinecap="round" />
+        <line x1={padX} x2={width - padX} y1={lineY} y2={lineY} stroke={INK} strokeWidth={2.5} strokeLinecap="round" />
         {Array.from({ length: block.ticks + 1 }, (_, i) => {
           const tx = x(lo + (i / block.ticks) * (hi - lo));
           const major = i === 0 || i === block.ticks;
           return (
-            <line key={i} x1={tx} x2={tx} y1={lineY - (major ? 11 : 6)} y2={lineY + (major ? 11 : 6)} stroke="#475569" strokeWidth={major ? 3 : 1.5} />
+            <line key={i} x1={tx} x2={tx} y1={lineY - (major ? 11 : 6)} y2={lineY + (major ? 11 : 6)} stroke={INK} strokeWidth={major ? 2.5 : 2} strokeLinecap="round" />
           );
         })}
-        <text x={padX} y={lineY + 30} textAnchor="middle" fontSize="15" fill="#334155">{block.start}</text>
-        <text x={width - padX} y={lineY + 30} textAnchor="middle" fontSize="15" fill="#334155">{block.end}</text>
+        <text x={padX} y={lineY + 42} textAnchor="middle" fontSize="34" fontWeight={600} fill={INK}>{block.start}</text>
+        <text x={width - padX} y={lineY + 42} textAnchor="middle" fontSize="34" fontWeight={600} fill={INK}>{block.end}</text>
 
         {block.arrows.map((arrow, index) => {
           const from = fractionValue(arrow.from) ?? lo;
@@ -99,34 +129,31 @@ export function NumberLineView({ block }: { block: NumberLineBlock }) {
           return (
             <g key={`arrow-${index}`}>
               <path
-                d={`M ${x1} ${lineY - 6} Q ${mid} ${lineY - 62} ${x2} ${lineY - 8}`}
+                d={`M ${x1} ${lineY - 6} Q ${mid} ${lineY - 78} ${x2} ${lineY - 8}`}
                 fill="none"
-                stroke="#4f46e5"
-                strokeWidth={3}
+                stroke={ACCENT}
+                strokeWidth={2.5}
+                strokeLinecap="round"
                 strokeDasharray={arrow.hidden_end ? '6 5' : undefined}
                 markerEnd={`url(#${markerId})`}
               />
-              <text x={mid} y={lineY - 52} textAnchor="middle" fontSize="15" fontWeight={600} fill="#4338ca">{arrow.label}</text>
+              <text x={mid} y={lineY - 62} textAnchor="middle" fontSize="34" fontWeight={600} fill={ACCENT_INK}>{arrow.label}</text>
               {arrow.hidden_end && (
                 <g>
-                  <circle cx={x2} cy={lineY - 22} r={13} fill="#eef2ff" stroke="#4f46e5" strokeWidth={2} />
-                  <text x={x2} y={lineY - 16} textAnchor="middle" fontSize="16" fontWeight={700} fill="#4338ca">?</text>
+                  <circle cx={x2} cy={lineY - 30} r={20} fill={MARK} stroke={INK} strokeWidth={2} />
+                  <text x={x2} y={lineY - 20} textAnchor="middle" fontSize="30" fontWeight={600} fill={INK}>?</text>
                 </g>
               )}
             </g>
           );
         })}
 
-        {block.points.map((point, index) => {
-          const value = fractionValue(point.at);
-          if (value === null) return null;
-          return (
-            <g key={`point-${index}`}>
-              <circle cx={x(value)} cy={lineY} r={7} fill="#f59e0b" stroke="#b45309" strokeWidth={2} />
-              <text x={x(value)} y={lineY + 52} textAnchor="middle" fontSize="15" fontWeight={600} fill="#92400e">{point.label}</text>
-            </g>
-          );
-        })}
+        {pointItems.map((item, order) => (
+          <g key={`point-${item.index}`}>
+            <circle cx={x(item.value)} cy={lineY} r={8} fill={ACCENT} stroke={INK} strokeWidth={2} />
+            <text x={labelX[order]} y={lineY + 80} textAnchor="middle" fontSize="34" fontWeight={600} fill={INK}>{item.point.label}</text>
+          </g>
+        ))}
       </svg>
     </div>
   );
@@ -134,91 +161,89 @@ export function NumberLineView({ block }: { block: NumberLineBlock }) {
 
 export function AnalogySceneView({ block }: { block: AnalogySceneBlock }) {
   return (
-    <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
-      <div className="flex flex-wrap items-end justify-center gap-6 pb-3">
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-end gap-6">
         {block.items.map((item, index) => {
           const parts = fractionParts(item.fraction);
           if (!parts) return null;
           return (
-            <figure key={`${item.fraction}-${index}`} className="flex flex-col items-center gap-1">
+            <figure key={`${item.fraction}-${index}`} className="flex flex-col items-center gap-2">
               <FractionShape template={block.template} numerator={parts.n} denominator={parts.d} />
-              <figcaption className="text-base text-amber-900">
+              <figcaption className="text-xl font-semibold tabular-nums text-ink">
                 <RichText text={item.fraction} />
               </figcaption>
             </figure>
           );
         })}
       </div>
-      <p className="text-center text-base leading-relaxed text-amber-950">
+      <p className="max-w-[60ch] text-left text-[18px] leading-[1.65] text-ink">
         <RichText text={block.story} />
       </p>
     </div>
   );
 }
 
-function MathChips({ math }: { math: string }) {
+function MathLines({ math }: { math: string }) {
   return (
-    <div className="mt-2 flex flex-wrap gap-2">
+    <div className="mt-2 space-y-1">
       {math
         .split(';')
         .map((segment) => segment.trim())
         .filter(Boolean)
         .map((segment, index) => (
-          <span
-            key={`${segment}-${index}`}
-            className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-base text-slate-800"
-          >
+          <div key={`${segment}-${index}`} className="overflow-x-auto break-words text-[20px] font-medium leading-snug tabular-nums text-ink sm:text-[22px]">
             <RichText text={segment} />
-          </span>
+          </div>
         ))}
     </div>
   );
 }
 
+function PencilMini() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 20l1-5L16 4l4 4L9 19z" />
+    </svg>
+  );
+}
+
 export function StepFlowView({ block }: { block: StepFlowBlock }) {
   return (
-    <ol className="rounded-2xl border border-gray-200 bg-white p-4">
+    <ol className="divide-y divide-line">
       {block.steps.map((step, index) => (
-        <li key={`${step.n}-${index}`}>
-          <div
-            className={`rounded-xl border px-3.5 py-3 ${
-              step.locked ? 'border-2 border-dashed border-indigo-300 bg-indigo-50/60' : 'border-gray-200 bg-white'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <span
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white ${
-                  step.locked ? 'bg-indigo-400' : 'bg-indigo-600'
-                }`}
-              >
-                {step.locked ? '?' : step.n}
-              </span>
-              <h4 className="text-base font-bold text-gray-900">{step.title}</h4>
+        <li
+          key={`${step.n}-${index}`}
+          className={`grid grid-cols-[2rem_1fr] gap-x-3 py-4 first:pt-0 last:pb-0 ${
+            step.locked ? '-mx-4 rounded-md bg-mark-soft px-4 first:pt-4 last:pb-4' : ''
+          }`}
+        >
+          <span className="text-[19px] font-bold leading-snug text-accent">{step.locked ? '?' : step.n}</span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-3">
+              <h3 className="flex-1 text-[19px] font-semibold leading-snug text-ink">
+                <span className="sr-only">Langkah {step.n}: </span>
+                {step.title}
+              </h3>
               {step.locked && (
-                <span className="ml-auto rounded-full border border-indigo-300 bg-white px-2 py-0.5 text-xs font-semibold text-indigo-700">
-                  Giliranmu!
+                <span className="inline-flex shrink-0 items-center gap-1.5 text-base font-semibold text-accent-ink">
+                  Giliranmu
+                  <PencilMini />
                 </span>
               )}
             </div>
             {step.detail && (
-              <p className="mt-1.5 pl-9 text-sm leading-relaxed text-gray-600">
+              <p className={`mt-1 max-w-[60ch] text-[18px] leading-[1.65] ${step.locked ? 'text-ink' : 'text-ink-soft'}`}>
                 <RichText text={step.detail} />
               </p>
             )}
-            {step.math && (
-              <div className="pl-9">
-                <MathChips math={step.math} />
-              </div>
+            {step.math && <MathLines math={step.math} />}
+            {step.locked && (
+              <>
+                <div className="mt-3 h-8 border-b-2 border-dashed border-ink-soft" aria-hidden="true" />
+                <p className="mt-1 text-base text-ink-soft">Tulis di bukumu</p>
+              </>
             )}
           </div>
-          {index < block.steps.length - 1 && (
-            <div className="flex justify-center py-0.5 text-indigo-300" aria-hidden="true">
-              <svg width="20" height="22" viewBox="0 0 20 22">
-                <line x1="10" y1="0" x2="10" y2="14" stroke="currentColor" strokeWidth="2.5" />
-                <polygon points="5,12 15,12 10,20" fill="currentColor" />
-              </svg>
-            </div>
-          )}
         </li>
       ))}
     </ol>

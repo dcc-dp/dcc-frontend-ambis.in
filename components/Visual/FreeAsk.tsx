@@ -58,7 +58,7 @@ export default function FreeAsk({ offline = false }: FreeAskProps) {
       setDegraded(body.degraded === true);
     } catch (err: unknown) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
-      setError(err instanceof Error ? err.message : 'Gagal menghubungi server');
+      setError('Pertanyaanmu belum terkirim. Coba lagi, ya.');
     } finally {
       if (abortRef.current === controller) {
         abortRef.current = null;
@@ -68,10 +68,10 @@ export default function FreeAsk({ offline = false }: FreeAskProps) {
   };
 
   return (
-    <div className="space-y-5">
-      <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4">
+    <div className="space-y-6">
+      <div className="space-y-4">
         <label className="block">
-          <span className="mb-1.5 block text-sm font-semibold text-gray-700">Mau belajar apa hari ini?</span>
+          <span className="mb-1.5 block text-lg font-semibold text-ink">Mau belajar apa hari ini?</span>
           <textarea
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
@@ -85,10 +85,10 @@ export default function FreeAsk({ offline = false }: FreeAskProps) {
             rows={2}
             disabled={loading}
             placeholder="Tulis pertanyaanmu, misalnya: kenapa 1/2 + 1/3 bukan 2/5?"
-            className="w-full resize-none rounded-xl border-2 border-gray-200 px-3.5 py-2.5 text-base text-gray-900 outline-none focus:border-indigo-500 disabled:opacity-60"
+            className="focus-pop w-full resize-none rounded-lg border-[1.5px] border-edge bg-card px-3.5 py-2.5 text-lg text-ink placeholder:text-ink-soft transition-colors duration-150 focus:border-accent focus:ring-[0.5px] focus:ring-accent disabled:bg-paper-deep disabled:opacity-60"
           />
         </label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-x-5 gap-y-1">
           {SUGGESTIONS.map((suggestion) => (
             <button
               key={suggestion}
@@ -98,7 +98,7 @@ export default function FreeAsk({ offline = false }: FreeAskProps) {
                 setQuestion(suggestion);
                 void ask(suggestion);
               }}
-              className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm text-gray-700 transition hover:border-indigo-300 disabled:opacity-50"
+              className="focus-pop min-h-11 px-1 py-1 text-left text-base text-accent-ink underline underline-offset-4 transition-colors duration-150 hover:bg-paper-deep disabled:opacity-50"
             >
               {suggestion}
             </button>
@@ -108,21 +108,21 @@ export default function FreeAsk({ offline = false }: FreeAskProps) {
           type="button"
           disabled={loading || !question.trim()}
           onClick={() => void ask(question)}
-          className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-base font-bold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+          className="focus-pop min-h-12 w-full rounded-lg border border-transparent bg-accent px-4 text-lg font-semibold text-white transition duration-150 hover:bg-accent-ink active:scale-[.98] disabled:cursor-not-allowed disabled:border-line disabled:bg-paper-deep disabled:text-ink-soft disabled:active:scale-100"
         >
-          {loading ? 'Menggambar penjelasan...' : 'Tampilkan di kanvas'}
+          {loading ? 'Sedang menggambar' : 'Jelaskan dengan gambar'}
         </button>
       </div>
 
       {error && (
-        <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-          {error}. Coba lagi ya.
+        <p role="alert" className="rounded-md bg-wrong-soft p-5 text-xl font-semibold text-wrong">
+          {error}
         </p>
       )}
 
       {degraded && visual && (
-        <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-          Penjelasan visualnya belum berhasil dibuat kali ini.
+        <p className="rounded-md bg-attention-soft p-4 text-base text-attention">
+          <strong className="font-bold">Perhatikan:</strong> Gambar penjelasannya belum bisa dibuat kali ini. Coba tanyakan lagi.
         </p>
       )}
 

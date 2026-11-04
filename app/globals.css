@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FBF6EA;
+  --foreground: #2A2722;
   --color-brand-50: #eef2ff;
   --color-brand-100: #e0e7ff;
   --color-brand-200: #c7d2fe;
@@ -46,19 +46,31 @@
   --color-surface: var(--color-surface);
   --color-surface-alt: var(--color-surface-alt);
   --color-border: var(--color-border);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-paper: #FBF6EA;
+  --color-card: #FFFDF8;
+  --color-paper-deep: #F3ECDA;
+  --color-ink: #2A2722;
+  --color-ink-soft: #5C5648;
+  --color-line: #E0D6BE;
+  --color-edge: #8C8470;
+  --color-accent: #2F4FA8;
+  --color-accent-ink: #223A80;
+  --color-accent-soft: #E4EAF8;
+  --color-accent-fill: #7F9AE0;
+  --color-correct: #1F6B40;
+  --color-correct-soft: #E3F1E6;
+  --color-attention: #8A5300;
+  --color-attention-soft: #FFF0CC;
+  --color-mark: #F7D86A;
+  --color-mark-soft: #FBF0C0;
+  --color-wrong: #A63A2B;
+  --color-wrong-soft: #FBE6E1;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, sans-serif;
   overflow-x: hidden;
 }
 
@@ -237,4 +249,61 @@ button {
   animation: flow-dash 1s linear infinite;
 }
 
+.focus-pop:focus-visible {
+  outline: 3px solid #223A80;
+  outline-offset: 2px;
+}
 
+@keyframes dot-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+@keyframes block-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-dot-pulse {
+  animation: dot-pulse 1.2s ease-in-out infinite;
+}
+
+.animate-block-in {
+  animation: block-in 200ms ease-out both;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+@keyframes cell-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-cell-in {
+  animation: cell-in 200ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-block-in,
+  .animate-cell-in,
+  .animate-flow-dash,
+  .animate-pulse,
+  .animate-bounce-subtle {
+    animation: none !important;
+  }
+  .animate-dot-pulse {
+    animation: none !important;
+    opacity: 1;
+  }
+  [role="meter"] * {
+    transition: none !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
