@@ -92,17 +92,25 @@ export function NumberLineView({ block }: { block: NumberLineBlock }) {
     .filter((item): item is { point: typeof item.point; index: number; value: number } => item.value !== null)
     .sort((a, b) => a.value - b.value);
   const labelGap = 74;
-  const labelX = pointItems.map((item) => Math.max(padX, Math.min(width - padX, x(item.value))));
-  for (let i = 1; i < labelX.length; i += 1) labelX[i] = Math.max(labelX[i], labelX[i - 1] + labelGap);
-  for (let i = labelX.length - 2; i >= 0; i -= 1) labelX[i] = Math.min(labelX[i], labelX[i + 1] - labelGap);
-  if (labelX.length && labelX[0] < padX) {
-    labelX[0] = padX;
-    for (let i = 1; i < labelX.length; i += 1) labelX[i] = Math.max(labelX[i], labelX[i - 1] + labelGap);
+  const labelRows = pointItems.length > 1 && (pointItems.length - 1) * labelGap > width - 2 * padX ? 2 : 1;
+  const labelX: number[] = new Array(pointItems.length);
+  for (let row = 0; row < labelRows; row += 1) {
+    const slots = pointItems.map((_, order) => order).filter((order) => order % labelRows === row);
+    const xs = slots.map((order) => x(pointItems[order].value));
+    for (let i = 1; i < xs.length; i += 1) xs[i] = Math.max(xs[i], xs[i - 1] + labelGap);
+    if (xs.length && xs[xs.length - 1] > width - padX) {
+      xs[xs.length - 1] = width - padX;
+      for (let i = xs.length - 2; i >= 0; i -= 1) xs[i] = Math.min(xs[i], xs[i + 1] - labelGap);
+    }
+    slots.forEach((order, i) => {
+      labelX[order] = Math.max(padX, xs[i]);
+    });
   }
+  const svgHeight = 200 + (labelRows - 1) * 44;
 
   return (
     <div className="p-2" style={GRID_BG}>
-      <svg viewBox={`0 0 ${width} 200`} className="w-full" role="img" aria-label={`Garis bilangan dari ${block.start} sampai ${block.end}`}>
+      <svg viewBox={`0 0 ${width} ${svgHeight}`} className="w-full" role="img" aria-label={`Garis bilangan dari ${block.start} sampai ${block.end}`}>
         <defs>
           <marker id={markerId} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
             <path d="M 0 0 L 10 5 L 0 10 z" fill={ACCENT} />
@@ -151,7 +159,7 @@ export function NumberLineView({ block }: { block: NumberLineBlock }) {
         {pointItems.map((item, order) => (
           <g key={`point-${item.index}`}>
             <circle cx={x(item.value)} cy={lineY} r={8} fill={ACCENT} stroke={INK} strokeWidth={2} />
-            <text x={labelX[order]} y={lineY + 80} textAnchor="middle" fontSize="34" fontWeight={600} fill={INK}>{item.point.label}</text>
+            <text x={labelX[order]} y={lineY + 80 + (order % labelRows) * 44} textAnchor="middle" fontSize="34" fontWeight={600} fill={INK}>{item.point.label}</text>
           </g>
         ))}
       </svg>
