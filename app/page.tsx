@@ -91,12 +91,14 @@ export default function HomePage() {
           </h2>
           <ThemeSwitcher />
         </Card>
-        <Link
-          href="/chat"
-          className="inline-flex min-h-11 items-center self-start text-base text-accent underline focus-pop"
-        >
-          Chat versi lama (sementara)
-        </Link>
+        {process.env.NODE_ENV !== 'production' && (
+          <Link
+            href="/chat"
+            className="inline-flex min-h-11 items-center self-start text-base text-accent underline focus-pop"
+          >
+            Chat versi lama (sementara)
+          </Link>
+        )}
       </div>
     </AppShell>
   );

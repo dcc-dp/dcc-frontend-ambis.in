@@ -26,7 +26,7 @@ export function QuizView({ questions, conceptTitle, isDiagnostic, onComplete, on
       <div className="mx-auto max-w-3xl">
         <Button variant="ghost" size="sm" onClick={onClose} className="mb-4">
           <BackIcon />
-          Kembali ke Roadmap
+          Kembali ke jalur belajar
         </Button>
         <Quiz
           questions={questions}

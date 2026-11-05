@@ -21,6 +21,9 @@ export interface CanvasResult {
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
+const WATCHDOG_MS = 45000;
+const TIMEOUT_MESSAGE = 'Kak Ambis butuh waktu lebih lama. Coba lagi ya.';
+
 export function useCanvasSession(exerciseId: string | null) {
   const [phase, setPhase] = useState<CanvasPhase>('idle');
   const [thoughts, setThoughts] = useState<string[]>([]);
@@ -31,10 +34,19 @@ export function useCanvasSession(exerciseId: string | null) {
   const abortRef = useRef<AbortController | null>(null);
   const idsRef = useRef<{ session_id?: string; problem_id?: string }>({});
 
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearWatchdog = useCallback(() => {
+    if (timerRef.current === null) return;
+    clearTimeout(timerRef.current);
+    timerRef.current = null;
+  }, []);
+
   const abort = useCallback(() => {
+    clearWatchdog();
     abortRef.current?.abort();
     abortRef.current = null;
-  }, []);
+  }, [clearWatchdog]);
 
   const reset = useCallback(() => {
     abort();
@@ -63,6 +75,11 @@ export function useCanvasSession(exerciseId: string | null) {
 
       let streamedVisual: VisualSpec | null = null;
       let finished = false;
+      let timedOut = false;
+      timerRef.current = setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, WATCHDOG_MS);
 
       try {
         const response = await fetch(`${API_BASE_URL}/api/v1/agent/hermes`, {
@@ -111,14 +128,22 @@ export function useCanvasSession(exerciseId: string | null) {
           setPhase('error');
         }
       } catch (err: unknown) {
+        if (timedOut) {
+          setError(TIMEOUT_MESSAGE);
+          setPhase('error');
+          return;
+        }
         if (err instanceof DOMException && err.name === 'AbortError') return;
         setError(err instanceof Error ? err.message : 'Gagal menghubungi server');
         setPhase('error');
       } finally {
-        if (abortRef.current === controller) abortRef.current = null;
+        if (abortRef.current === controller) {
+          clearWatchdog();
+          abortRef.current = null;
+        }
       }
     },
-    [abort, exerciseId]
+    [abort, clearWatchdog, exerciseId]
   );
 
   return { phase, thoughts, visual, result, error, submit, reset };

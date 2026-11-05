@@ -45,7 +45,15 @@ export default function StudentDashboardPage() {
     ? Math.round(concepts.filter(c => c.category === 'informatika').reduce((sum, c) => sum + c.progress, 0) / concepts.filter(c => c.category === 'informatika').length)
     : 0;
 
-  const totalImprovement = concepts.reduce((sum, c) => sum + (c.progress - c.previousProgress), 0);
+  const totalImprovement = concepts.length > 0
+    ? Math.min(
+        100,
+        Math.max(
+          0,
+          Math.round(concepts.reduce((sum, c) => sum + (c.progress - c.previousProgress), 0) / concepts.length)
+        )
+      )
+    : 0;
 
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-8">
@@ -64,17 +72,13 @@ export default function StudentDashboardPage() {
         </Callout>
 
         <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatCard icon={STAT_ICONS.total} label="Total Progress" value={`${overallProgress}%`} />
+          <StatCard icon={STAT_ICONS.total} label="Kemajuan total" value={`${overallProgress}%`} />
           <StatCard icon={STAT_ICONS.improvement} label="Peningkatan" value={`+${totalImprovement}%`} emphasis />
           <StatCard icon={STAT_ICONS.matematika} label="Matematika" value={`${matematikaProgress}%`} />
           <StatCard icon={STAT_ICONS.informatika} label="Informatika" value={`${informatikaProgress}%`} />
         </div>
 
         <div className="relative">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute top-0 right-0 z-10 h-12 w-10 bg-linear-to-r from-transparent to-paper sm:hidden"
-        />
         <Tabs
           label="Filter mata pelajaran"
           value={selectedCategory}

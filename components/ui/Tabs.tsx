@@ -71,8 +71,8 @@ export function Tabs<T extends string>({
     <TabsContext.Provider value={{ idBase: base, value }}>
       <div>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="-mx-1 min-w-0 overflow-x-auto px-1 pt-1 pb-1.5">
-            <div role="tablist" aria-label={label} className="flex gap-1">
+          <div className="-mx-1 min-w-0 px-1 pt-1 pb-1.5 sm:overflow-x-auto">
+            <div role="tablist" aria-label={label} className="flex flex-wrap gap-1 sm:flex-nowrap">
               {items.map((item, index) => {
                 const selected = item.value === value;
                 const key = safeId(item.value);

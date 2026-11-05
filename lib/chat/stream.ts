@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react';
 import type { CanvasData } from '@/components/Canvas/LearningCanvas';
+import { safeSet } from '@/lib/safeStorage';
 import { isValidStudentName } from './storage';
 import { STUDENT_PROFILE_KEY } from './types';
 import type { MascotMood, StudentProfile } from './types';
@@ -36,7 +37,7 @@ function persistProfile(h: StreamHandlers, patch: (prev: StudentProfile) => Stud
   h.setStudentProfile((prev) => {
     const updated = patch(prev);
     if (updated === prev) return prev;
-    localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(updated));
+    safeSet(STUDENT_PROFILE_KEY, JSON.stringify(updated));
     return updated;
   });
 }

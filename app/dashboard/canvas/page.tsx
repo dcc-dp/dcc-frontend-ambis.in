@@ -25,7 +25,7 @@ function CanvasScreen() {
   const pathname = usePathname();
   const tab: CanvasTab = searchParams.get('tab') === 'ask' ? 'ask' : 'practice';
   const [offline, setOffline] = useState(false);
-  const { catalog, catalogError, selected, setSelected } = useCanvasPractice();
+  const { catalog, catalogError, selected, setSelected, retry } = useCanvasPractice();
 
   const online = useCanvasSession(offline ? null : selected?.id ?? null);
   const demo = useOfflineCanvasDemo();
@@ -105,6 +105,7 @@ function CanvasScreen() {
               selected={selected}
               selectedLabel={selectedLabel}
               onChoose={choose}
+              onRetry={retry}
               onUseDemo={SHOW_DEMO_TOGGLE ? () => setMode(true) : undefined}
             />
             <section className="min-w-0 space-y-6">

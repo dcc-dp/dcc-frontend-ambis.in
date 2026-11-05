@@ -1,4 +1,7 @@
+import { safeGet, safeSet } from '@/lib/safeStorage';
 import { CHAT_HISTORY_KEY } from './types';
+
+export const MODEL_STORAGE_KEY = 'ambisin_selected_model';
 import type { ChatHistory, Message } from './types';
 
 type StoredMessage = Omit<Message, 'createdAt'> & { createdAt: string | Date };
@@ -25,7 +28,7 @@ export function isValidStudentName(name?: string | null): boolean {
 
 export function loadChatHistory(filterType?: 'ask' | 'learning-path'): ChatHistory[] {
   try {
-    const stored = localStorage.getItem(CHAT_HISTORY_KEY);
+    const stored = safeGet(CHAT_HISTORY_KEY);
     if (stored) {
       const parsed: StoredChat[] = JSON.parse(stored);
       const chats: ChatHistory[] = parsed.map((chat) => ({
@@ -49,7 +52,7 @@ export function loadChatHistory(filterType?: 'ask' | 'learning-path'): ChatHisto
 
 export function saveChatHistory(history: ChatHistory[]) {
   try {
-    localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(history));
+    safeSet(CHAT_HISTORY_KEY, JSON.stringify(history));
   } catch (error) {
     console.error('Error saving chat history:', error);
   }

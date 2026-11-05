@@ -1,3 +1,4 @@
+import { safeGet, safeSet } from '@/lib/safeStorage';
 import type { ChatHistory, LearningPathData, Message } from './types';
 
 export const CHAT_HISTORY_KEY = 'ambisin_chat_history';
@@ -25,7 +26,7 @@ interface StoredProgress {
 
 export function loadChatHistory(filterType?: 'ask' | 'learning-path'): ChatHistory[] {
   try {
-    const stored = localStorage.getItem(CHAT_HISTORY_KEY);
+    const stored = safeGet(CHAT_HISTORY_KEY);
     if (stored) {
       const parsed: StoredChat[] = JSON.parse(stored);
       const chats = parsed.map((chat) => ({
@@ -40,23 +41,23 @@ export function loadChatHistory(filterType?: 'ask' | 'learning-path'): ChatHisto
 }
 
 export function saveChatHistory(history: ChatHistory[]) {
-  try { localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(history)); } catch { return; }
+  safeSet(CHAT_HISTORY_KEY, JSON.stringify(history));
 }
 
 export function loadLearningPathData(): LearningPathData | null {
   try {
-    const stored = localStorage.getItem(LEARNING_PATH_DATA_KEY);
+    const stored = safeGet(LEARNING_PATH_DATA_KEY);
     return stored ? JSON.parse(stored) : null;
   } catch { return null; }
 }
 
 export function saveLearningPathData(data: LearningPathData) {
-  localStorage.setItem(LEARNING_PATH_DATA_KEY, JSON.stringify(data));
+  safeSet(LEARNING_PATH_DATA_KEY, JSON.stringify(data));
 }
 
 export function updateStudentProgressStorage(conceptId: string, conceptName: string, newScore: number) {
   try {
-    const stored = localStorage.getItem(STUDENT_PROGRESS_KEY);
+    const stored = safeGet(STUDENT_PROGRESS_KEY);
     const list: StoredProgress[] = stored ? JSON.parse(stored) : [];
     const index = list.findIndex((c) => c.id === conceptId);
     if (index >= 0) {
@@ -72,7 +73,7 @@ export function updateStudentProgressStorage(conceptId: string, conceptName: str
         category: 'matematika',
       });
     }
-    localStorage.setItem(STUDENT_PROGRESS_KEY, JSON.stringify(list));
+    safeSet(STUDENT_PROGRESS_KEY, JSON.stringify(list));
     window.dispatchEvent(new Event('ambisin_progress_updated'));
     window.dispatchEvent(new Event('storage'));
   } catch (err) {

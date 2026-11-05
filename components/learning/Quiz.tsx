@@ -134,15 +134,15 @@ export function Quiz({
   return (
     <Card padding="lg" className="mx-auto max-w-2xl space-y-6">
       {isDiagnostic && (
-        <Callout tone="info" title="Tes Diagnostik Awal:">
-          Pemetaan Kemampuan Belajar. Tidak Mengurangi Nilai.
+        <Callout tone="info" title="Kuis pemanasan:">
+          Tidak dinilai, jadi santai saja.
         </Callout>
       )}
 
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <Badge tone="accent">
-            {isDiagnostic ? 'Pertanyaan Diagnostik' : 'Soal'} {currentIndex + 1} dari {questions.length}
+            {isDiagnostic ? 'Soal pemanasan' : 'Soal'} {currentIndex + 1} dari {questions.length}
           </Badge>
           <span className="text-base text-ink-soft">Terus coba, kamu pasti bisa</span>
         </div>

@@ -27,7 +27,7 @@ export function QuizResult({
   return (
     <Card padding="lg" className="mx-auto max-w-xl space-y-5 text-center">
       <h2 className="text-2xl font-bold text-ink">
-        {isDiagnostic ? 'Hasil Pemetaan Diagnostik Selesai' : 'Hebat! Sesi Belajar Selesai'}
+        {isDiagnostic ? 'Kuis pemanasan selesai' : 'Hebat! Sesi Belajar Selesai'}
       </h2>
       <p className="text-lg text-ink-soft">
         {isDiagnostic
@@ -38,7 +38,7 @@ export function QuizResult({
       <div className="space-y-2 text-left">
         <ProgressBar
           ratio={masteryPercent / 100}
-          label={isDiagnostic ? 'Baseline Penguasaan Konsep' : 'Tingkat Pemahaman'}
+          label={isDiagnostic ? 'Pemahaman awalmu' : 'Tingkat Pemahaman'}
           kind="meter"
         />
         <p className="text-base text-ink-soft">{note}</p>

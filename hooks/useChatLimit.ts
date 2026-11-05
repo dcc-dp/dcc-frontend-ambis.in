@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { safeGet, safeSet } from '@/lib/safeStorage';
 
 export function useChatLimit() {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -10,7 +11,7 @@ export function useChatLimit() {
 
   useEffect(() => {
     const isEnvDisabled = process.env.NEXT_PUBLIC_DISABLE_CHAT_LIMIT === 'true';
-    const stored = localStorage.getItem('dev_bypass_chat_limit');
+    const stored = safeGet('dev_bypass_chat_limit');
     const next = stored !== null
       ? stored === 'true'
       : isEnvDisabled || process.env.NODE_ENV === 'development';
@@ -34,14 +35,14 @@ export function useChatLimit() {
     setDevBypassLimit(true);
     setIsBlocked(false);
     setShowLoginModal(false);
-    localStorage.setItem('dev_bypass_chat_limit', 'true');
+    safeSet('dev_bypass_chat_limit', 'true');
   };
 
   const handleToggleBypass = () => {
     const nextVal = !devBypassLimit;
     setDevBypassLimit(nextVal);
     if (nextVal) setIsBlocked(false);
-    localStorage.setItem('dev_bypass_chat_limit', String(nextVal));
+    safeSet('dev_bypass_chat_limit', String(nextVal));
   };
 
   return {

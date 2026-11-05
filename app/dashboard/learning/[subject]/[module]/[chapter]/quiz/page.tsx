@@ -60,9 +60,9 @@ export default function QuizPage() {
   if (questions.length === 0) {
     return (
       <div className="p-8 text-center">
-        <h2 className="mb-2 text-2xl font-bold text-ink">Quiz Tidak Tersedia</h2>
-        <p className="mb-4 text-lg text-ink-soft">Quiz untuk chapter ini belum tersedia.</p>
-        <Button onClick={handleBackToChapter}>Kembali ke Chapter</Button>
+        <h2 className="mb-2 text-2xl font-bold text-ink">Kuis Belum Tersedia</h2>
+        <p className="mb-4 text-lg text-ink-soft">Kuis untuk bab ini belum tersedia.</p>
+        <Button onClick={handleBackToChapter}>Kembali ke bab</Button>
       </div>
     );
   }
@@ -71,11 +71,11 @@ export default function QuizPage() {
     <div className="mx-auto max-w-3xl p-4 pb-16 md:p-8">
       <div className="mb-6 md:mb-8">
         <Button variant="ghost" size="sm" onClick={handleBackToChapter} className="mb-3 md:mb-4">
-          ← Kembali ke Chapter
+          ← Kembali ke bab
         </Button>
-        <h1 className="mb-2 text-3xl font-bold text-ink">Quiz: {chapterTitle}</h1>
+        <h1 className="mb-2 text-3xl font-bold text-ink">Kuis: {chapterTitle}</h1>
         <p className="text-lg text-ink-soft">
-          Jawab semua soal di bawah ini. Nilai minimum untuk lulus adalah 70%.
+          Jawab semua soal di bawah ini. Pelan-pelan saja ya.
         </p>
       </div>
 
@@ -99,7 +99,7 @@ export default function QuizPage() {
             onClick={handleSubmit}
             disabled={Object.keys(answers).length < questions.length}
           >
-            Submit Jawaban ({Object.keys(answers).length}/{questions.length} terjawab)
+            Kirim jawaban ({Object.keys(answers).length} dari {questions.length} terjawab)
           </Button>
         </div>
       ) : (

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { ExerciseItem } from '@/components/learning/Quiz';
 import { useLearningPathChat } from '@/hooks/useLearningPathChat';
 import { requestDynamicRoadmap } from '@/lib/learning-path/api';
+import { safeSet } from '@/lib/safeStorage';
 import {
   DEFAULT_PECAHAN_CONCEPT_ID,
   loadChatHistory,
@@ -74,8 +75,8 @@ export function useLearningPathPage() {
   };
 
   const handleInitialQuestionsSubmit = async (answers: InitialAnswers) => {
-    localStorage.setItem('hasCompletedInitialQuestions', 'true');
-    localStorage.setItem('initialAnswers', JSON.stringify(answers));
+    safeSet('hasCompletedInitialQuestions', 'true');
+    safeSet('initialAnswers', JSON.stringify(answers));
     setShowInitialModal(false);
 
     const conceptId = answers.subtopic === 'pecahan' ? DEFAULT_PECAHAN_CONCEPT_ID : '00000000-0000-0000-0000-000000000201';

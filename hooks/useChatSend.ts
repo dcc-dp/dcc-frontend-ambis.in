@@ -8,6 +8,7 @@ import {
   buildStudentContext,
   detectIntroName,
 } from '@/lib/chat/context';
+import { safeSet } from '@/lib/safeStorage';
 import { saveChatHistory } from '@/lib/chat/storage';
 import { requestStream } from '@/lib/chat/request';
 import { readChatStream } from '@/lib/chat/stream';
@@ -173,7 +174,7 @@ export function useChatSend(d: ChatSendDeps) {
       activeName = detected;
       const updated = { ...d.studentProfile, name: detected };
       d.setStudentProfile(updated);
-      localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(updated));
+      safeSet(STUDENT_PROFILE_KEY, JSON.stringify(updated));
     }
 
     const chatId = d.currentChatId || Date.now().toString();

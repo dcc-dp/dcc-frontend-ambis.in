@@ -1,15 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { PracticeConcept, PracticeExercise } from '@/components/Practice/types';
 import { API_BASE_URL } from '@/app/hooks/useCanvasSession';
+
+const CATALOG_TIMEOUT_MS = 15000;
 
 export function useCanvasPractice() {
   const [catalog, setCatalog] = useState<PracticeConcept[] | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [selected, setSelected] = useState<PracticeExercise | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${API_BASE_URL}/api/v1/curriculum/practice`)
+    fetch(`${API_BASE_URL}/api/v1/curriculum/practice`, {
+      signal: AbortSignal.timeout(CATALOG_TIMEOUT_MS),
+    })
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.json() as Promise<PracticeConcept[]>;
@@ -25,7 +30,12 @@ export function useCanvasPractice() {
     return () => {
       cancelled = true;
     };
+  }, [attempt]);
+
+  const retry = useCallback(() => {
+    setCatalogError(null);
+    setAttempt((value) => value + 1);
   }, []);
 
-  return { catalog, catalogError, selected, setSelected };
+  return { catalog, catalogError, selected, setSelected, retry };
 }

@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui';
 import ExercisePicker from '@/components/Practice/ExercisePicker';
 import type { PracticeConcept, PracticeExercise } from '@/components/Practice/types';
 
@@ -8,6 +9,7 @@ interface ExerciseSidebarProps {
   selected: PracticeExercise | null;
   selectedLabel: string;
   onChoose: (exercise: PracticeExercise) => void;
+  onRetry: () => void;
   onUseDemo?: () => void;
 }
 
@@ -18,25 +20,30 @@ export default function ExerciseSidebar({
   selected,
   selectedLabel,
   onChoose,
+  onRetry,
   onUseDemo,
-}: ExerciseSidebarProps) {
+}:ExerciseSidebarProps) {
   const selectedId = selected?.id ?? null;
   return (
     <aside className="min-w-0 space-y-4" aria-label="Pilih soal">
       <h1 className="text-xl font-bold text-ink">Latihan</h1>
       {catalogError && !offline && (
-        <p className="rounded-md bg-wrong-soft p-3 text-base text-wrong">
-          <strong className="font-bold">Soal belum bisa dimuat.</strong> Coba lagi sebentar lagi
-          {onUseDemo ? (
-            <>
-              , atau pakai{' '}
+        <div className="space-y-3 rounded-md bg-wrong-soft p-3 text-base text-wrong">
+          <p>
+            <strong className="font-bold">Soalnya belum muncul.</strong> Kak Ambis belum bisa
+            mengambil soal. Coba lagi ya.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button size="sm" onClick={onRetry}>
+              Coba lagi
+            </Button>
+            {onUseDemo ? (
               <button type="button" className="focus-pop min-h-11 font-semibold underline" onClick={onUseDemo}>
-                mode demo
+                Pakai mode demo
               </button>
-            </>
-          ) : null}
-          .
-        </p>
+            ) : null}
+          </div>
+        </div>
       )}
       {!shownCatalog && !catalogError && <p className="text-base text-ink-soft">Memuat soal</p>}
       {shownCatalog && (

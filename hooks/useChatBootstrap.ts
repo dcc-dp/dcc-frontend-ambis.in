@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { MODEL_STORAGE_KEY } from '@/components/Chat/ModelSelector';
-import { isValidStudentName, loadChatHistory } from '@/lib/chat/storage';
+import { useRouter } from 'next/navigation';
+import { isValidStudentName, loadChatHistory, MODEL_STORAGE_KEY } from '@/lib/chat/storage';
 import { DEFAULT_MODEL_ID, DEFAULT_STUDENT_ID, STUDENT_PROFILE_KEY } from '@/lib/chat/types';
+import { safeGet, safeSet } from '@/lib/safeStorage';
 import type { ChatHistory, InitialAnswers, StudentProfile } from '@/lib/chat/types';
 
 interface BootstrapParams {
@@ -14,7 +15,7 @@ interface BootstrapParams {
 function readStoredProfile(): StudentProfile {
   let activeProfile: StudentProfile = { studentId: DEFAULT_STUDENT_ID };
   try {
-    const storedProfile = localStorage.getItem(STUDENT_PROFILE_KEY);
+    const storedProfile = safeGet(STUDENT_PROFILE_KEY);
     if (storedProfile) {
       activeProfile = { ...activeProfile, ...JSON.parse(storedProfile) };
     }
@@ -23,7 +24,7 @@ function readStoredProfile(): StudentProfile {
   }
   if (activeProfile.name && !isValidStudentName(activeProfile.name)) {
     activeProfile.name = undefined;
-    localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(activeProfile));
+    safeSet(STUDENT_PROFILE_KEY, JSON.stringify(activeProfile));
   }
   return activeProfile;
 }
@@ -44,7 +45,7 @@ function syncMemoryFromDb(
             grade: prev.grade || dbData.grade,
             facts: dbData.facts || prev.facts,
           };
-          localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(merged));
+          safeSet(STUDENT_PROFILE_KEY, JSON.stringify(merged));
           return merged;
         });
       }
@@ -71,6 +72,7 @@ async function pushMemoryToDb(profile: StudentProfile) {
 }
 
 export function useChatBootstrap({ setChatHistory }: BootstrapParams) {
+  const router = useRouter();
   const hasLoaded = useRef(false);
   const [showInitialModal, setShowInitialModal] = useState(false);
   const [hasAnsweredQuestions, setHasAnsweredQuestions] = useState(false);
@@ -85,13 +87,13 @@ export function useChatBootstrap({ setChatHistory }: BootstrapParams) {
 
     const history = loadChatHistory('ask');
 
-    const savedModel = localStorage.getItem(MODEL_STORAGE_KEY);
+    const savedModel = safeGet(MODEL_STORAGE_KEY);
     const isModelUsable =
       savedModel && !savedModel.includes('llama-3.3') && !savedModel.includes('compound');
     const modelId = isModelUsable ? savedModel : DEFAULT_MODEL_ID;
 
     const activeProfile = readStoredProfile();
-    const hasCompleted = localStorage.getItem('hasCompletedInitialQuestions') === 'true';
+    const hasCompleted = safeGet('hasCompletedInitialQuestions') === 'true';
 
     queueMicrotask(() => {
       setChatHistory(history);
@@ -104,8 +106,8 @@ export function useChatBootstrap({ setChatHistory }: BootstrapParams) {
   }, [setChatHistory]);
 
   const handleInitialQuestionsSubmit = async (answers: InitialAnswers) => {
-    localStorage.setItem('hasCompletedInitialQuestions', 'true');
-    localStorage.setItem('initialAnswers', JSON.stringify(answers));
+    safeSet('hasCompletedInitialQuestions', 'true');
+    safeSet('initialAnswers', JSON.stringify(answers));
     setHasAnsweredQuestions(true);
     setShowInitialModal(false);
 
@@ -118,13 +120,13 @@ export function useChatBootstrap({ setChatHistory }: BootstrapParams) {
       difficulty: answers.difficulty,
     };
     setStudentProfile(updatedProfile);
-    localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(updatedProfile));
+    safeSet(STUDENT_PROFILE_KEY, JSON.stringify(updatedProfile));
     await pushMemoryToDb(updatedProfile);
   };
 
   const handleLearningPathClick = () => {
     if (hasAnsweredQuestions) {
-      window.location.href = '/dashboard/learning';
+      router.push('/dashboard/learning');
     } else {
       setShowInitialModal(true);
     }
