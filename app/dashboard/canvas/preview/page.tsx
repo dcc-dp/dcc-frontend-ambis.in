@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { AppShell } from '@/components/Layout/AppShell';
 import { Tabs } from '@/components/ui';
 import VisualCanvas from '@/components/Visual/VisualCanvas';
 import RichText from '@/components/Visual/RichText';
@@ -19,20 +18,18 @@ export default function CanvasPreviewPage() {
   const [kind, setKind] = useState<InterventionKind>('worked_example');
 
   return (
-    <AppShell>
-      <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
-        <header className="space-y-2">
-          <p className="text-sm text-ink-soft">Pratinjau tanpa server</p>
-          <h1 className="text-3xl font-bold leading-tight text-ink">Kanvas AMBIS.IN</h1>
-          <p className="max-w-[60ch] text-lg leading-relaxed text-ink">
-            <RichText text={FIXTURE_QUESTION} />
-          </p>
-        </header>
+    <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
+      <header className="space-y-2">
+        <p className="text-sm text-ink-soft">Pratinjau tanpa server</p>
+        <h1 className="text-3xl font-bold leading-tight text-ink">Kanvas AMBIS.IN</h1>
+        <p className="max-w-[60ch] text-lg leading-relaxed text-ink">
+          <RichText text={FIXTURE_QUESTION} />
+        </p>
+      </header>
 
-        <Tabs label="Jenis intervensi" value={kind} onChange={setKind} items={TABS} idBase="preview" />
+      <Tabs label="Jenis intervensi" value={kind} onChange={setKind} items={TABS} idBase="preview" />
 
-        <VisualCanvas key={kind} spec={visualSpecFixtures[kind]} />
-      </div>
-    </AppShell>
+      <VisualCanvas key={kind} spec={visualSpecFixtures[kind]} />
+    </div>
   );
 }
