@@ -70,7 +70,7 @@ export function Modal({ open, onClose, title, description, children, footer }: M
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
       onClick={handleBackdropClick}
-      className={cn('w-[calc(100%-2rem)] max-w-lg bg-transparent p-0 text-ink')}
+      className={cn('m-auto w-[calc(100%-2rem)] max-w-lg bg-transparent p-0 text-ink')}
     >
       <div className="max-h-[90dvh] overflow-y-auto rounded-xl border-theme border-line bg-card p-6 text-ink shadow-md">
       <div className="flex items-start justify-between gap-4">

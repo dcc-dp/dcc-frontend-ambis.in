@@ -34,6 +34,8 @@ export type TabsProps<T extends string> = {
   onChange: (value: T) => void;
   items: TabItem<T>[];
   idBase?: string;
+  trailing?: ReactNode;
+  children?: ReactNode;
 };
 
 function nextIndex(key: string, index: number, count: number): number | null {
@@ -44,7 +46,15 @@ function nextIndex(key: string, index: number, count: number): number | null {
   return null;
 }
 
-export function Tabs<T extends string>({ label, value, onChange, items, idBase }: TabsProps<T>) {
+export function Tabs<T extends string>({
+  label,
+  value,
+  onChange,
+  items,
+  idBase,
+  trailing,
+  children,
+}: TabsProps<T>) {
   const generatedId = useId();
   const base = safeId(idBase ?? generatedId);
   const buttons = useRef<Array<HTMLButtonElement | null>>([]);
@@ -59,32 +69,38 @@ export function Tabs<T extends string>({ label, value, onChange, items, idBase }
 
   return (
     <TabsContext.Provider value={{ idBase: base, value }}>
-      <div className="-mx-1 overflow-x-auto px-1 pt-1 pb-1.5">
-        <div role="tablist" aria-label={label} className="flex gap-1">
-          {items.map((item, index) => {
-            const selected = item.value === value;
-            const key = safeId(item.value);
-            return (
-              <button
-                key={item.value}
-                ref={(element) => {
-                  buttons.current[index] = element;
-                }}
-                type="button"
-                role="tab"
-                id={`${base}-tab-${key}`}
-                aria-selected={selected}
-                aria-controls={`${base}-panel-${key}`}
-                tabIndex={selected ? 0 : -1}
-                onClick={() => onChange(item.value)}
-                onKeyDown={(event) => handleKeyDown(event, index)}
-                className={cn(TAB_BASE, selected ? TAB_STATE.active : TAB_STATE.inactive)}
-              >
-                {item.label}
-              </button>
-            );
-          })}
+      <div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="-mx-1 min-w-0 overflow-x-auto px-1 pt-1 pb-1.5">
+            <div role="tablist" aria-label={label} className="flex gap-1">
+              {items.map((item, index) => {
+                const selected = item.value === value;
+                const key = safeId(item.value);
+                return (
+                  <button
+                    key={item.value}
+                    ref={(element) => {
+                      buttons.current[index] = element;
+                    }}
+                    type="button"
+                    role="tab"
+                    id={`${base}-tab-${key}`}
+                    aria-selected={selected}
+                    aria-controls={`${base}-panel-${key}`}
+                    tabIndex={selected ? 0 : -1}
+                    onClick={() => onChange(item.value)}
+                    onKeyDown={(event) => handleKeyDown(event, index)}
+                    className={cn(TAB_BASE, selected ? TAB_STATE.active : TAB_STATE.inactive)}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {trailing}
         </div>
+        {children}
       </div>
     </TabsContext.Provider>
   );
@@ -97,14 +113,15 @@ export type TabPanelProps = {
 
 export function TabPanel({ value, children }: TabPanelProps) {
   const context = useContext(TabsContext);
+  if (!context) throw new Error('TabPanel must be rendered inside Tabs');
   const key = safeId(value);
-  const active = context?.value === value;
   return (
     <div
       role="tabpanel"
-      id={context ? `${context.idBase}-panel-${key}` : undefined}
-      aria-labelledby={context ? `${context.idBase}-tab-${key}` : undefined}
-      hidden={!active}
+      id={`${context.idBase}-panel-${key}`}
+      aria-labelledby={`${context.idBase}-tab-${key}`}
+      hidden={context.value !== value}
+      tabIndex={0}
       className="pt-4 text-lg text-ink"
     >
       {children}

@@ -88,7 +88,7 @@ Impor semua dari `@/components/ui`.
 | `Badge` | Status kecil yang tidak bisa diklik | `tone`: neutral, accent, correct, attention, wrong, mark |
 | `Callout` | Umpan balik atau catatan panjang | `tone`: info, success, warn, error; `live` polite/assertive untuk pesan yang muncul sendiri |
 | `Field` + `Input` / `Textarea` | Form dengan label, petunjuk, dan error | Field menyambungkan `id`, `aria-describedby`, `aria-invalid` lewat konteks |
-| `Tabs` + `TabPanel` | Pindah bagian dalam satu halaman | Panah kiri/kanan, Home, End; `idBase` opsional (default `useId()`); `TabPanel` hanya butuh `value` karena membaca konteks dari `Tabs` |
+| `Tabs` + `TabPanel` | Pindah bagian dalam satu halaman | Panah kiri/kanan, Home, End; `idBase` opsional (default `useId()`); `Tabs` adalah root (`label`, `value`, `onChange`, `items`, `idBase?`, `trailing?`) dan `TabPanel value` wajib menjadi child `Tabs`; di luar `Tabs` akan melempar error |
 | `ProgressBar` | Progres atau skor | `ratio` 0 sampai 1 (dibatasi); `kind` progressbar (default) atau meter; label dan persen selalu tampil |
 | `Modal` | Konfirmasi atau detail yang menutup halaman | Native `<dialog>`; Escape, klik latar, dan tombol "Tutup" memanggil `onClose`; panel maksimal `90dvh` dan bisa digulir |
 

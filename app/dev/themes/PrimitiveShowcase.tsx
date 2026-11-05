@@ -146,12 +146,13 @@ function TabsSection() {
   const [tab, setTab] = useState<TabValue>('soal');
   return (
     <Section title="Tabs">
-      <Tabs label="Bagian belajar" value={tab} onChange={setTab} items={[...TAB_ITEMS]} />
-      {TAB_ITEMS.map((item) => (
-        <TabPanel key={item.value} value={item.value}>
-          Isi panel {item.label.toLowerCase()}: Ibu punya 3/5 kg gula.
-        </TabPanel>
-      ))}
+      <Tabs label="Bagian belajar" value={tab} onChange={setTab} items={[...TAB_ITEMS]}>
+        {TAB_ITEMS.map((item) => (
+          <TabPanel key={item.value} value={item.value}>
+            Isi panel {item.label.toLowerCase()}: Ibu punya 3/5 kg gula.
+          </TabPanel>
+        ))}
+      </Tabs>
     </Section>
   );
 }
