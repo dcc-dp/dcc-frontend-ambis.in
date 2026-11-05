@@ -8,11 +8,11 @@ Teknologi: Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailw
 
 ## Menjalankan
 
-Prasyarat: Node.js 20+ dan backend berjalan di `http://localhost:8001` (atau gunakan **Mode demo** di bawah).
+Prasyarat: Node.js 20+ dan backend berjalan di `http://localhost:8001` (atau aktifkan **Mode demo** di bawah).
 
 ```bash
-bun install        # atau: npm install / pnpm install (lihat Package manager)
-bun run dev        # http://localhost:3001
+pnpm install
+pnpm run dev       # http://localhost:3001
 ```
 
 Variabel lingkungan (`.env.local`, jangan di-commit):
@@ -21,18 +21,14 @@ Variabel lingkungan (`.env.local`, jangan di-commit):
 |---|---|
 | `NEXT_PUBLIC_API_URL` | URL backend. Bawaan `http://localhost:8001` |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Login Google (next-auth) |
+| `NEXT_PUBLIC_DEMO_TOGGLE` | `1` menampilkan kotak centang **Mode demo (tanpa server)** di `/dashboard/canvas`; tanpa ini siswa hanya melihat mode online |
 | `NEXT_PUBLIC_DISABLE_CHAT_LIMIT` | `true` mematikan batas percakapan di halaman `/` (chat lama) |
 
 next-auth v5 juga membaca `AUTH_SECRET` dari environment; kemungkinan wajib di production (belum diverifikasi di repo ini).
 
 ### Package manager
 
-Repo ini belum punya satu package manager baku:
-
-- `bun.lock` dan `package-lock.json` ter-track; README lama memakai Bun, sedangkan `Dockerfile` memakai `npm`.
-- `pnpm` juga bisa, tetapi pnpm 11 berhenti dengan `ERR_PNPM_IGNORED_BUILDS` sampai ada `pnpm-workspace.yaml` berisi `allowBuilds: { unrs-resolver: false }` (file ini dan `pnpm-lock.yaml` belum di-commit).
-
-Putuskan satu package manager sebelum menambah dependency, dan jangan meng-commit lebih dari satu lockfile baru.
+Repo ini hanya memakai **pnpm** (`pnpm-lock.yaml`). `pnpm-workspace.yaml` wajib ada: pnpm 11 berhenti dengan `ERR_PNPM_IGNORED_BUILDS` tanpa `allowBuilds: { unrs-resolver: false }`. Jangan menambah lockfile lain.
 
 ## Halaman utama untuk demo: kanvas
 
@@ -41,7 +37,7 @@ Putuskan satu package manager sebelum menambah dependency, dan jangan meng-commi
 | `/dashboard/canvas` | **Latihan soal** (pilih soal, jawab, lihat penjelasan bergambar, bar penguasaan) dan **Tanya bebas** |
 | `/dashboard/canvas/preview` | Empat jenis kanvas dari fixture, **tanpa server**. Cadangan terakhir saat demo |
 
-Di `/dashboard/canvas`, centang **Mode demo (tanpa server)** untuk jalan sepenuhnya di browser dengan data tiruan: jawab `4/9` (penjelasan), jawaban salah lain dua kali (petunjuk), salah ke-3 (contoh langkah), lalu `17/20` (benar).
+Jalankan dev server dengan `NEXT_PUBLIC_DEMO_TOGGLE=1`, lalu di `/dashboard/canvas` centang **Mode demo (tanpa server)** untuk jalan sepenuhnya di browser dengan data tiruan: jawab `4/9` (penjelasan), jawaban salah lain dua kali (petunjuk), salah ke-3 (contoh langkah), lalu `17/20` (benar).
 
 Alur data (jalur Latihan): frontend memanggil `GET /api/v1/curriculum/practice` untuk daftar soal (tanpa kunci jawaban), lalu `POST /api/v1/agent/hermes` dengan SSE. Event `visual` membawa **VisualSpec** yang divalidasi dulu oleh `normalizeVisualSpec` sebelum digambar. Tab Tanya bebas memakai `POST /api/v1/ask/visual`.
 
@@ -61,14 +57,13 @@ app/
   hooks/
     useCanvasSession.ts      Latihan: kirim jawaban ke Hermes lewat SSE, simpan session/problem id
     useOfflineCanvasDemo.ts  Mode demo tanpa server
-    useHermesAgent.ts        Hook lama (kontrak Hermes lama, tidak dipakai kanvas)
-  components/                Ikon dan playground lama
+  components/                Ikon
   auth, api/auth/            next-auth
 components/
   Visual/                    Renderer kanvas baru: VisualCanvas, blocks, FractionShape,
                              AnswerBox, FreeAsk, RichText
   Canvas/                    Panel kanvas LAMA untuk chat (LearningCanvas, StepFlowCanvas)
-  Chat/  Layout/  Mascot/  learning/  Modal/  Dashboard/
+  Chat/  Layout/  Mascot/  learning/  Modal/
 lib/
   visualSpec.ts              Tipe VisualSpec + parser defensif (membuang block tak dikenal)
   sse.ts                     Pembaca Server-Sent Events
@@ -85,13 +80,13 @@ Arah desain kanvas: **"Kertas & Tinta"**, seperti halaman buku latihan sekolah u
 
 | Perintah | Fungsi |
 |---|---|
-| `bun run dev` | Dev server di port 3001 |
-| `bun run build` / `bun run start` | Build produksi dan menjalankannya di port 3001 |
-| `npx tsc --noEmit` | Cek tipe |
-| `npx eslint app/dashboard/canvas components/Visual lib app/hooks/useCanvasSession.ts app/hooks/useOfflineCanvasDemo.ts` | Lint kode kanvas (bersih) |
+| `pnpm run dev` | Dev server di port 3001 |
+| `pnpm run build` / `pnpm run start` | Build produksi dan menjalankannya di port 3001 |
+| `pnpm exec tsc --noEmit` | Cek tipe |
+| `pnpm exec eslint app/dashboard/canvas components/Visual lib app/hooks/useCanvasSession.ts app/hooks/useOfflineCanvasDemo.ts` | Lint kode kanvas (bersih) |
 
-Skrip `lint` di `package.json` memanggil `next lint`, yang sudah dihapus di Next.js 16 (perintahnya membaca `lint` sebagai nama folder), jadi gunakan `eslint` langsung. `npx eslint app components lib` untuk seluruh kode saat ini melaporkan 23 error dan 22 peringatan di kode lama (terbanyak `react-hooks/set-state-in-effect`, `no-explicit-any`, dan `no-unused-vars`, antara lain di `app/dashboard/learning/page.tsx` dan `app/auth/error/page.tsx`); kode kanvas tidak termasuk. Belum ada tes otomatis di repo ini.
+Skrip `lint` di `package.json` memanggil `next lint`, yang sudah dihapus di Next.js 16 (perintahnya membaca `lint` sebagai nama folder), jadi gunakan `eslint` langsung. `pnpm exec eslint app components lib` untuk seluruh kode saat ini melaporkan 23 error dan 22 peringatan di kode lama (terbanyak `react-hooks/set-state-in-effect`, `no-explicit-any`, dan `no-unused-vars`, antara lain di `app/dashboard/learning/page.tsx` dan `app/auth/error/page.tsx`); kode kanvas tidak termasuk. Belum ada tes otomatis di repo ini.
 
 ## Docker
 
-`Dockerfile` memakai `npm install` dan menjalankan dev server di port 3001. `next.config.ts` mengizinkan origin `localhost`, `127.0.0.1`, dan `host.docker.internal` pada port 3001.
+`Dockerfile` memakai pnpm (`corepack enable`, `pnpm install --frozen-lockfile`) dan menjalankan dev server (`pnpm run dev`) di port 3001. `next.config.ts` mengizinkan origin `localhost`, `127.0.0.1`, dan `host.docker.internal` pada port 3001.
