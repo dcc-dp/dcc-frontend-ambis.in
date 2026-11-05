@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import MessageList from '@/components/Chat/MessageList';
 import { Button } from '@/components/ui';
 import type { CanvasData } from '@/components/Canvas/LearningCanvas';
@@ -36,8 +36,6 @@ export default function ChatContainer({
   onQuickPromptClick,
   onMessageChange,
   onSendMessage,
-  selectedModelId = 'gemini/gemini-3.5-flash-lite',
-  onModelChange,
   onOpenCanvas,
 }: ChatContainerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
