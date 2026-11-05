@@ -101,7 +101,8 @@ export default function MainLayout({ children, userName, onLogout, onNewChat, on
   // Load chat history from localStorage if no prop provided
   useEffect(() => {
     if (!propChats) {
-      setLocalChats(loadChatHistoryFromStorage(isLearningPathPage ? 'learning-path' : 'ask'));
+      const loaded = loadChatHistoryFromStorage(isLearningPathPage ? 'learning-path' : 'ask');
+      queueMicrotask(() => setLocalChats(loaded));
     }
   }, [propChats, isLearningPathPage]);
 
@@ -125,11 +126,11 @@ export default function MainLayout({ children, userName, onLogout, onNewChat, on
   };
 
   return (
-    <div className="flex h-screen bg-white relative">
+    <div className="flex h-screen bg-paper text-ink relative">
       {/* Mobile overlay */}
       {isMobile && sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40"
+          className="fixed inset-0 bg-scrim z-40"
           onClick={() => setSidebarOpen(false)}
         />
       )}
