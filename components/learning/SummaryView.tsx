@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { ProgressBar } from './ProgressBar';
+import { Badge, Button, Callout, Card, ProgressBar } from '@/components/ui';
 
 interface SummaryViewProps {
   pathTitle: string;
@@ -33,105 +32,86 @@ export function SummaryView({
   onViewModule,
 }: SummaryViewProps) {
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-5xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-ink">
           PEMBELAJARAN {pathTitle.toUpperCase()}
         </h1>
-        <p className="text-gray-600 mb-8">Overview kemajuan belajarmu</p>
+        <p className="text-base text-ink-soft">Overview kemajuan belajarmu</p>
+      </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
-            <p className="text-sm opacity-90 mb-1">Progres Keseluruhan</p>
-            <p className="text-3xl font-bold">{totalProgress}%</p>
-            <div className="mt-3 h-2 bg-white/20 rounded-full overflow-hidden">
-              <div className="h-full bg-white rounded-full" style={{ width: `${totalProgress}%` }} />
-            </div>
-          </div>
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <Card>
+          <p className="text-base text-ink-soft">Progres Keseluruhan</p>
+          <p className="text-2xl font-bold tabular-nums">{totalProgress}%</p>
+        </Card>
+        <Card>
+          <p className="text-base text-ink-soft">Module Selesai</p>
+          <p className="text-2xl font-bold tabular-nums">{completedModules}/{totalModules}</p>
+          <p className="text-sm text-ink-soft">semua module</p>
+        </Card>
+        <Card>
+          <p className="text-base text-ink-soft">Waktu Belajar</p>
+          <p className="text-2xl font-bold tabular-nums">{studyTime}h</p>
+          <p className="text-sm text-ink-soft">total jam</p>
+        </Card>
+        <Card>
+          <p className="text-base text-ink-soft">Rata-rata Quiz</p>
+          <p className="text-2xl font-bold tabular-nums">{averageQuizScore}%</p>
+          <p className="text-sm text-ink-soft">skor rata-rata</p>
+        </Card>
+      </div>
 
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-6 shadow-lg">
-            <p className="text-sm opacity-90 mb-1">Module Selesai</p>
-            <p className="text-3xl font-bold">{completedModules}/{totalModules}</p>
-            <p className="text-xs opacity-80 mt-1">semua module</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl p-6 shadow-lg">
-            <p className="text-sm opacity-90 mb-1">Waktu Belajar</p>
-            <p className="text-3xl font-bold">{studyTime}h</p>
-            <p className="text-xs opacity-80 mt-1">total jam</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-xl p-6 shadow-lg">
-            <p className="text-sm opacity-90 mb-1">Rata-rata Quiz</p>
-            <p className="text-3xl font-bold">{averageQuizScore}%</p>
-            <p className="text-xs opacity-80 mt-1">skor rata-rata</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Progress Module
-          </h2>
-
-          <div className="space-y-6">
-            {modules.map((module) => (
-              <div
-                key={module.id}
-                className="border-b border-gray-100 pb-4 last:border-b-0"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{module.title}</h3>
-                    <p className="text-xs text-gray-500">
-                      {module.completedChapters}/{module.totalChapters} chapter
-                    </p>
-                  </div>
-                  {module.isCompleted && (
-                    <span className="text-green-600 font-medium">✓ Selesai</span>
-                  )}
-                </div>
-
-                <ProgressBar
-                  value={module.progress}
-                  label={`Progress: ${module.completedChapters} dari ${module.totalChapters} chapter`}
-                  showPercentage={false}
-                />
-
-                {module.averageScore !== undefined && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    Rata-rata quiz: {module.averageScore}%
+      <Card as="section" padding="lg" className="space-y-4">
+        <h2 className="text-xl font-semibold text-ink">Progress Module</h2>
+        <div className="space-y-4">
+          {modules.map((module) => (
+            <Card key={module.id} as="article" tone="sunken" className="space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-semibold text-ink">{module.title}</h3>
+                  <p className="text-base text-ink-soft">
+                    {module.completedChapters}/{module.totalChapters} chapter
                   </p>
-                )}
-                {onViewModule && (
-                  <button
-                    onClick={() => onViewModule(module.id)}
-                    className="mt-2 text-blue-600 text-sm font-medium hover:text-blue-700 transition flex items-center gap-1"
-                  >
-                    Lihat Detail
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </div>
+                {module.isCompleted && (
+                  <Badge tone="correct" className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+                    <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
-                  </button>
+                    Selesai
+                  </Badge>
                 )}
               </div>
-            ))}
-          </div>
-        </div>
 
-        {completedModules === totalModules && totalModules > 0 && (
-          <div className="bg-green-50 border-2 border-green-500 rounded-xl p-6 text-center">
-            <div className="text-4xl mb-2">🎉</div>
-            <h2 className="text-2xl font-bold text-green-800 mb-2">
-              Selamat! Kamu Telah Menyelesaikan {pathTitle}!
-            </h2>
-            <p className="text-green-700">
-              Kamu telah menyelesaikan semua module dan chapter.
-            </p>
-          </div>
-        )}
-      </div>
+              <ProgressBar
+                ratio={module.progress / 100}
+                label={`Progress: ${module.completedChapters} dari ${module.totalChapters} chapter`}
+              />
+
+              {module.averageScore !== undefined && (
+                <p className="text-base text-ink-soft">Rata-rata quiz: {module.averageScore}%</p>
+              )}
+              {onViewModule && (
+                <div className="flex justify-end">
+                  <Button variant="secondary" size="sm" onClick={() => onViewModule(module.id)}>
+                    Lihat Detail
+                    <svg aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Button>
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
+      </Card>
+
+      {completedModules === totalModules && totalModules > 0 && (
+        <Callout tone="success" title={`Selamat! Kamu Telah Menyelesaikan ${pathTitle}!`}>
+          Kamu telah menyelesaikan semua module dan chapter.
+        </Callout>
+      )}
     </div>
   );
 }
-
-export default SummaryView;
