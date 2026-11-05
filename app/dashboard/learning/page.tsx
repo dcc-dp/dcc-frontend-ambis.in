@@ -574,7 +574,7 @@ export default function LearningPathsPage() {
     }
   };
 
-  const handleNewChat = () => { window.location.href = '/'; };
+  const handleNewChat = () => { window.location.href = '/chat'; };
   const handleSelectChat = (chatId: string) => { const chat = chatHistory.find((c) => c.id === chatId); if (chat) { setMessages(chat.messages); setCurrentChatId(chat.id); } };
   const handleLearningPathClick = () => {};
 

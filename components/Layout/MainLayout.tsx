@@ -120,7 +120,7 @@ export default function MainLayout({ children, userName, onLogout, onNewChat, on
       onNewChat();
     } else {
       // Navigate to home page for new chat if no handler provided
-      window.location.href = '/';
+      window.location.href = '/chat';
     }
   };
 
