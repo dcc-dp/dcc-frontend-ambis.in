@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
+
+const subscribeNothing = () => () => {};
 
 interface MascotProps {
   message?: string;
@@ -11,29 +13,33 @@ interface MascotProps {
   onToggle?: () => void;
 }
 
-export default function Mascot({ 
-  message = 'Halo! Kak Ambis siap membantu belajarmu', 
+const SIZE_CLASSES = {
+  sm: 'h-11 w-11 text-base',
+  md: 'h-12 w-12 text-lg',
+  lg: 'h-14 w-14 text-xl',
+};
+
+const AVATAR =
+  'flex items-center justify-center rounded-full bg-accent font-bold text-on-accent transition-colors focus-pop hover:bg-accent-ink';
+
+export default function Mascot({
+  message = 'Halo! Kak Ambis siap membantu belajarmu',
   mood = 'idle',
   size = 'md',
   position = 'bottom-right',
   showChat = false,
-  onToggle
+  onToggle,
 }: MascotProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [isBlinking, setIsBlinking] = useState(false);
-  const [currentMood, setCurrentMood] = useState(mood);
-  const [mounted, setMounted] = useState(false);
+  const [isWaveDone, setIsWaveDone] = useState(false);
+  const mounted = useSyncExternalStore(subscribeNothing, () => true, () => false);
+  const currentMood = isWaveDone ? 'idle' : mounted ? 'waving' : mood;
   const blinkTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Mark as mounted to prevent hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Blink animation - only after mount
   useEffect(() => {
     if (!mounted) return;
-    
+
     const scheduleBlink = () => {
       const delay = 3000 + Math.random() * 2000;
       blinkTimeoutRef.current = setTimeout(() => {
@@ -44,7 +50,7 @@ export default function Mascot({
         }, 200);
       }, delay);
     };
-    
+
     scheduleBlink();
     return () => {
       if (blinkTimeoutRef.current) {
@@ -53,74 +59,68 @@ export default function Mascot({
     };
   }, [mounted]);
 
-  // Wave animation on mount
   useEffect(() => {
     if (!mounted) return;
-    setCurrentMood('waving');
-    const timer = setTimeout(() => setCurrentMood('idle'), 2000);
+    const timer = setTimeout(() => setIsWaveDone(true), 2000);
     return () => clearTimeout(timer);
   }, [mounted]);
+
+  const positionClasses = position === 'bottom-right' ? 'right-4 bottom-4' : 'left-4 bottom-4';
 
   if (!isVisible) {
     return (
       <button
-        onClick={() => { setIsVisible(true); onToggle?.(); }}
-        className={`fixed ${position === 'bottom-right' ? 'right-4' : 'left-4'} bottom-4 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 shadow-md flex items-center justify-center text-white font-bold text-base hover:scale-105 transition-transform`}
+        type="button"
+        onClick={() => {
+          setIsVisible(true);
+          onToggle?.();
+        }}
+        className={`fixed ${positionClasses} z-50 hidden h-12 w-12 text-lg md:flex ${AVATAR}`}
         title="Buka status Kak Ambis"
+        aria-label="Buka status Kak Ambis"
       >
         A
       </button>
     );
   }
 
-  const sizeClasses = {
-    sm: 'w-10 h-10 text-sm',
-    md: 'w-12 h-12 text-base',
-    lg: 'w-14 h-14 text-lg'
-  };
-
-  const positionClasses = position === 'bottom-right' 
-    ? 'right-4 bottom-4' 
-    : 'left-4 bottom-4';
+  const blinkClass = mounted && isBlinking ? 'scale-y-[0.2] motion-reduce:scale-y-100' : 'scale-y-100';
 
   return (
-    <div className={`fixed ${positionClasses} z-50 flex flex-col items-end gap-2`}>
-      {/* Chat bubble */}
+    <div className={`fixed ${positionClasses} pointer-events-none z-50 hidden flex-col items-end gap-2 md:flex`}>
       {showChat && message && (
-        <div className="bg-white rounded-xl shadow-lg p-3 max-w-[260px] border border-gray-200 animate-fade-in relative">
-          <p className="text-xs text-gray-700 leading-relaxed font-medium">{message}</p>
-          <div className="absolute -bottom-1.5 right-5 w-3 h-3 bg-white border-r border-b border-gray-200 transform rotate-45"></div>
+        <div className="max-w-[260px] rounded-xl border-theme border-line bg-card p-3 animate-fade-in">
+          <p className="text-base text-ink">{message}</p>
         </div>
       )}
 
-      {/* Mascot button */}
       <button
-        onClick={() => { setIsVisible(false); onToggle?.(); }}
-        className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-md flex items-center justify-center hover:scale-105 transition-transform relative overflow-hidden font-bold`}
+        type="button"
+        onClick={() => {
+          setIsVisible(false);
+          onToggle?.();
+        }}
+        className={`pointer-events-auto ${SIZE_CLASSES[size]} animate-bounce-subtle ${AVATAR}`}
         title="Tutup status Kak Ambis"
+        aria-label="Tutup status Kak Ambis"
       >
-        {/* Monogram / Status */}
-        <div className="relative z-10 flex items-center justify-center">
-          {currentMood === 'thinking' ? (
-            <svg className="w-5 h-5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-            </svg>
-          ) : (
-            <span 
-              className="inline-block tracking-tighter" 
-              style={{ 
-                transform: mounted && isBlinking ? 'scaleY(0.2)' : 'scaleY(1)',
-                transition: 'transform 0.12s ease'
-              }}
-            >
-              A
-            </span>
-          )}
-        </div>
-
-        {/* Pulse ring */}
-        <div className="absolute inset-0 rounded-full bg-white/20 animate-ping"></div>
+        {currentMood === 'thinking' ? (
+          <svg
+            className="h-5 w-5 animate-spin motion-reduce:animate-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+          </svg>
+        ) : (
+          <span
+            className={`inline-block tracking-tighter transition-transform duration-100 motion-reduce:transition-none ${blinkClass}`}
+          >
+            A
+          </span>
+        )}
       </button>
     </div>
   );
