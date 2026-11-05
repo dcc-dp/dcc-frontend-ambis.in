@@ -30,7 +30,7 @@ function fail(message) {
 
 function isSkippedPath(path) {
   const norm = resolve(path).split(sep).join('/');
-  return norm.includes('/app/styles/themes/') || norm.endsWith('/app/styles/bridge.css');
+  return norm.includes('/app/styles/themes/');
 }
 
 function collectFiles(path, out) {

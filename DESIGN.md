@@ -56,11 +56,10 @@ Nilai hex ada di file tema (`app/styles/themes/buku-tulis.css`, `app/styles/them
 - Kontras utama: ink di atas paper 13.79:1 (Buku Tulis) dan 12.58:1 (Papan Kapur).
 - Jika menambah warna, cek dengan `node scripts/check-themes.mjs` sebelum dipakai.
 
-## 4. Jembatan legacy
+## 4. Palette Tailwind dilarang
 
-- Kelas warna Tailwind palette lama (mis. `bg-gray-100`, `text-blue-600`) dipetakan ulang per tema lewat `app/styles/bridge.css`. Layar lama ikut berganti tema tanpa diubah.
-- Kode baru TIDAK boleh memakai palette Tailwind. Gunakan token semantik saja.
-- `bridge.css` dihapus setelah semua layar dimigrasi ke token. Jangan menambah aturan baru ke jembatan.
+- Jembatan legacy (`bridge.css`) sudah dihapus: semua layar memakai token semantik.
+- Kode baru TIDAK boleh memakai kelas palette Tailwind (gray, blue, red, dst.) maupun hex. `scripts/check-tokens.mjs` menolaknya.
 
 ## 5. Aturan main
 
@@ -109,7 +108,7 @@ Pilih `Callout` untuk kalimat, `Badge` untuk kata pendek, `Card` untuk blok.
 ## 7. Menambah tema
 
 1. Buat file baru di `app/styles/themes/<nama-tema>.css` dengan set token yang sama persis (semua token di bagian 2).
-2. Impor file itu di `app/globals.css` SETELAH `buku-tulis.css` dan `papan-kapur.css`, sebelum `bridge.css`.
+2. Impor file itu di `app/globals.css` SETELAH `buku-tulis.css` dan `papan-kapur.css`, sebelum `tokens.css`.
 3. Daftarkan nama tema di `lib/theme.ts` (`THEMES`, `THEME_LABELS`, `THEME_HINTS`) agar `ThemeSwitcher` menampilkannya.
 4. Jalankan pemeriksaan:
    - `node scripts/check-themes.mjs` (kontras dan kelengkapan token)
