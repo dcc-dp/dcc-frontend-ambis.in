@@ -15,7 +15,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         Lewati ke konten
       </a>
-      <header className="sticky top-0 z-30 bg-card border-b border-theme border-line">
+      <header className="sticky top-0 z-30 bg-card border-b-theme border-line">
         <div className="mx-auto flex w-full max-w-6xl items-center gap-4 px-4 py-2">
           <Link href="/" className="inline-flex min-h-11 items-center gap-2 focus-pop">
             <span

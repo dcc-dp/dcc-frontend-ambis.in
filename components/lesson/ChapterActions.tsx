@@ -35,21 +35,19 @@ export function ChapterActions({
         </Button>
         {isCompleted && <Badge tone="correct">Sudah selesai</Badge>}
         <Button variant="primary" onClick={onStartQuiz}>
-          Kerjakan Quiz
+          Kerjakan Kuis
         </Button>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-theme border-line pt-4 sm:flex-row sm:justify-between">
+      <div className="flex flex-col gap-3 border-t-theme border-line pt-4 sm:flex-row sm:justify-between">
         {prevChapter ? (
           <Button variant="secondary" size="sm" onClick={() => onSelectChapter(prevChapter.id)}>
             <Arrow d="M15 19l-7-7 7-7" />
             Sebelumnya: {prevChapter.title}
           </Button>
-        ) : (
-          <div />
-        )}
+        ) : null}
         {nextChapter && (
-          <Button variant="secondary" size="sm" onClick={() => onSelectChapter(nextChapter.id)}>
+          <Button variant="secondary" size="sm" className="sm:ml-auto" onClick={() => onSelectChapter(nextChapter.id)}>
             Selanjutnya: {nextChapter.title}
             <Arrow d="M9 5l7 7-7 7" />
           </Button>

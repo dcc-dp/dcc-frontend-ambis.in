@@ -64,13 +64,13 @@ export default function Sidebar({ isOpen = true, onToggle, onNewChat, onSelectCh
 
       <aside
         className={cn(
-          'bg-card text-ink border-r border-theme border-line flex flex-col h-screen transition-all duration-300 z-50',
+          'bg-card text-ink border-r-theme border-line flex flex-col h-screen transition-all duration-300 z-50',
           isOpen ? 'w-[280px]' : 'w-16',
           isMobile && isOpen && 'fixed inset-y-0 left-0',
           isMobile && !isOpen && 'w-0 overflow-hidden border-r-0'
         )}
       >
-        <div className="p-4 border-b border-theme border-line flex items-center justify-between flex-shrink-0">
+        <div className="p-4 border-b-theme border-line flex items-center justify-between flex-shrink-0">
           {isOpen ? (
             <div className="flex items-center gap-3">
               <LogoMark />
@@ -127,7 +127,7 @@ export default function Sidebar({ isOpen = true, onToggle, onNewChat, onSelectCh
           <div className="h-px bg-line" />
         </div>
 
-        <div className="p-3 flex-shrink-0 border-t border-theme border-line bg-card">
+        <div className="p-3 flex-shrink-0 border-t-theme border-line bg-card">
           {isOpen && (
             <p className="text-sm text-ink-soft px-1 py-1 font-medium uppercase tracking-wide">
               Belajar

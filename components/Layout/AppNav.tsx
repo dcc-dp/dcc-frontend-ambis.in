@@ -111,7 +111,7 @@ export function MobileNav() {
   return (
     <nav
       aria-label="Menu utama"
-      className="fixed inset-x-0 bottom-0 z-40 bg-card border-t border-theme border-line pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-x-0 bottom-0 z-40 bg-card border-t-theme border-line pb-[env(safe-area-inset-bottom)]"
     >
       <div className="grid grid-cols-5 gap-1 p-1">
         {NAV_ITEMS.map((item) => {

@@ -26,8 +26,8 @@ export function ChapterSidebar({
   onSelect,
 }: ChapterSidebarProps) {
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-theme border-line bg-card md:flex">
-      <div className="border-b border-theme border-line p-4">
+    <aside className="hidden w-64 shrink-0 flex-col border-r-theme border-line bg-card md:flex">
+      <div className="border-b-theme border-line p-4">
         <button
           type="button"
           onClick={onBack}

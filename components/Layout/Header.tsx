@@ -78,7 +78,7 @@ export function Header({ userName, onLogout, onSidebarToggle, sidebarOpen = true
   const overallProgress = useOverallProgress();
 
   return (
-    <header className="bg-card text-ink border-b border-theme border-line px-4 md:px-6 py-2 flex items-center justify-between flex-shrink-0">
+    <header className="bg-card text-ink border-b-theme border-line px-4 md:px-6 py-2 flex items-center justify-between flex-shrink-0">
       <div className="flex items-center gap-2 md:gap-4">
         {onSidebarToggle && (
           <IconButton

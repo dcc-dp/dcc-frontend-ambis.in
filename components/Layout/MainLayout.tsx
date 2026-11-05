@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { safeGet } from '@/lib/safeStorage';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
@@ -44,7 +46,7 @@ function loadChatHistoryFromStorage(filterType?: 'ask' | 'learning-path'): Array
   updatedAt: Date;
 }> {
   try {
-    const stored = localStorage.getItem(CHAT_HISTORY_KEY);
+    const stored = safeGet(CHAT_HISTORY_KEY);
     if (stored) {
       const parsed: ChatHistory[] = JSON.parse(stored);
       const chats = parsed.map((chat) => ({
@@ -75,8 +77,9 @@ export default function MainLayout({ children, userName, onLogout, onNewChat, on
     updatedAt: Date;
   }>>([]);
 
-  // Determine which type of chats to show based on current page
-  const isLearningPathPage = typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard/learning');
+  const router = useRouter();
+  const pathname = usePathname();
+  const isLearningPathPage = pathname.startsWith('/dashboard/learning');
   const chats = propChats || localChats;
 
   useEffect(() => {
@@ -121,7 +124,7 @@ export default function MainLayout({ children, userName, onLogout, onNewChat, on
       onNewChat();
     } else {
       // Navigate to home page for new chat if no handler provided
-      window.location.href = '/chat';
+      router.push('/chat');
     }
   };
 

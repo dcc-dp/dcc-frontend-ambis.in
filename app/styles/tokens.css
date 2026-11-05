@@ -77,3 +77,19 @@
 @utility border-theme {
   border-width: var(--theme-border-width);
 }
+
+@utility border-t-theme {
+  border-top-width: var(--theme-border-width);
+}
+
+@utility border-b-theme {
+  border-bottom-width: var(--theme-border-width);
+}
+
+@utility border-l-theme {
+  border-left-width: var(--theme-border-width);
+}
+
+@utility border-r-theme {
+  border-right-width: var(--theme-border-width);
+}
