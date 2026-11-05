@@ -13,18 +13,12 @@ interface Point {
   y: number;
 }
 
-const INK = '#2A2722';
-const EMPTY = '#FFFDF8';
+const INK = 'stroke-illus-ink';
+const HATCH_STYLE = { stroke: 'var(--theme-illus-hatch)' };
 const STROKE_WIDTH = 2.25;
 const MAX_DRAWN = 12;
-const CHEESE = '#EFC36B';
-const CHOCOLATE = '#9A6A47';
-const RIBBON = '#C9604F';
-const WATER = '#8DB6D9';
-const PEPPERONI = '#B5473A';
 
 const STROKE_PROPS = {
-  stroke: INK,
   strokeWidth: STROKE_WIDTH,
   strokeLinejoin: 'round' as const,
   strokeLinecap: 'round' as const,
@@ -58,15 +52,15 @@ function SimpleBar({ n, d, size }: { n: number; d: number; size: number }) {
   const top = (size - height) / 2;
   return (
     <>
-      <rect x={4} y={top} width={width} height={height} rx={4} fill={EMPTY} {...STROKE_PROPS} />
-      {n > 0 && <rect x={4} y={top} width={round2((width * n) / d)} height={height} rx={4} fill={CHOCOLATE} {...STROKE_PROPS} />}
+      <rect x={4} y={top} width={width} height={height} rx={4} className={`fill-illus-empty ${INK}`} {...STROKE_PROPS} />
+      {n > 0 && <rect x={4} y={top} width={round2((width * n) / d)} height={height} rx={4} className={`fill-illus-chocolate ${INK}`} {...STROKE_PROPS} />}
     </>
   );
 }
 
 function Hatch({ clipId, size }: { clipId: string; size: number }) {
   return (
-    <g clipPath={`url(#${clipId})`} stroke={INK} strokeWidth={1} opacity={0.5} fill="none">
+    <g clipPath={`url(#${clipId})`} style={HATCH_STYLE} strokeWidth={1} fill="none">
       {[0.25, 0.5, 0.75].map((offset) => (
         <line key={offset} x1={offset * size - size / 2} y1={size} x2={offset * size + size / 2} y2={0} />
       ))}
@@ -117,12 +111,12 @@ function Pizza({ n, d, size, clipId }: { n: number; d: number; size: number; cli
         </clipPath>
       </defs>
       {slices.map((path, i) => (
-        <path key={i} d={path} fill={i < n ? CHEESE : EMPTY} {...STROKE_PROPS} />
+        <path key={i} d={path} className={`${i < n ? 'fill-illus-pizza' : 'fill-illus-empty'} ${INK}`} {...STROKE_PROPS} />
       ))}
       {n > 0 && <Hatch clipId={clipId} size={size} />}
-      <circle cx={c} cy={c} r={r - 5} fill="none" stroke={INK} strokeWidth={1} opacity={0.45} />
+      <circle cx={c} cy={c} r={r - 5} fill="none" style={HATCH_STYLE} strokeWidth={1} />
       {dots.map((dot, i) => (
-        <circle key={i} cx={dot.x} cy={dot.y} r={dot.radius} fill={PEPPERONI} stroke={INK} strokeWidth={1.25} />
+        <circle key={i} cx={dot.x} cy={dot.y} r={dot.radius} className={`fill-illus-pepperoni ${INK}`} strokeWidth={1.25} />
       ))}
     </>
   );
@@ -161,7 +155,7 @@ function Bar({ n, d, size, rounded, clipId }: { n: number; d: number; size: numb
     return path;
   };
 
-  const fill = rounded ? CHOCOLATE : RIBBON;
+  const fill = rounded ? 'fill-illus-chocolate' : 'fill-illus-ribbon';
   const paths = Array.from({ length: d }, (_, i) => cellPath(i));
 
   return (
@@ -172,7 +166,7 @@ function Bar({ n, d, size, rounded, clipId }: { n: number; d: number; size: numb
         </clipPath>
       </defs>
       {paths.map((path, i) => (
-        <path key={i} d={path} fill={i < n ? fill : EMPTY} {...STROKE_PROPS} />
+        <path key={i} d={path} className={`${i < n ? fill : 'fill-illus-empty'} ${INK}`} {...STROKE_PROPS} />
       ))}
       {n > 0 && <Hatch clipId={clipId} size={size} />}
       {rounded &&
@@ -186,10 +180,9 @@ function Bar({ n, d, size, rounded, clipId }: { n: number; d: number; size: numb
               x2={round2(upper[i + 1].x - 3)}
               y1={y}
               y2={y}
-              stroke={INK}
+              style={HATCH_STYLE}
               strokeWidth={1}
               strokeLinecap="round"
-              opacity={0.5}
             />
           );
         })}
@@ -242,15 +235,15 @@ function Bottle({ n, d, size, id }: { n: number; d: number; size: number; id: st
           <path d={water} />
         </clipPath>
       </defs>
-      <path d={neck} fill={EMPTY} {...STROKE_PROPS} />
-      <path d={body} fill={EMPTY} stroke="none" />
+      <path d={neck} className={`fill-illus-empty ${INK}`} {...STROKE_PROPS} />
+      <path d={body} className="fill-illus-empty" stroke="none" />
       {n > 0 && (
         <g clipPath={`url(#${bodyClip})`}>
-          <path d={water} fill={WATER} {...STROKE_PROPS} />
+          <path d={water} className={`fill-illus-water ${INK}`} {...STROKE_PROPS} />
           <Hatch clipId={fillClip} size={size} />
         </g>
       )}
-      <path d={body} fill="none" {...STROKE_PROPS} />
+      <path d={body} fill="none" className={INK} {...STROKE_PROPS} />
       {Array.from({ length: d - 1 }, (_, i) => {
         const y = round2(top + ((i + 1) / d) * bodyHeight + jitter(i + 300));
         return (
@@ -260,7 +253,7 @@ function Bottle({ n, d, size, id }: { n: number; d: number; size: number; id: st
             x2={right}
             y1={y}
             y2={y}
-            stroke={INK}
+            className={INK}
             strokeWidth={1.5}
             strokeLinecap="round"
           />

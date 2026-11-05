@@ -3,6 +3,7 @@
 import React, { useId } from 'react';
 import RichText from './RichText';
 import FractionShape from './FractionShape';
+import { Callout, type CalloutTone } from '@/components/ui';
 import {
   fractionParts,
   fractionValue,
@@ -13,31 +14,20 @@ import {
   type StepFlowBlock,
 } from '@/lib/visualSpec';
 
-const GRID_BG = {
-  backgroundColor: '#FFFDF8',
+const GRID_STYLE = {
   backgroundImage:
-    'repeating-linear-gradient(0deg, transparent 0 23px, #EAE0C8 23px 24px), repeating-linear-gradient(90deg, transparent 0 23px, #EAE0C8 23px 24px)',
+    'repeating-linear-gradient(0deg, transparent 0 23px, var(--theme-illus-grid) 23px 24px), repeating-linear-gradient(90deg, transparent 0 23px, var(--theme-illus-grid) 23px 24px)',
 };
 
-const INK = '#2A2722';
-const ACCENT = '#2F4FA8';
-const ACCENT_INK = '#223A80';
-const MARK = '#F7D86A';
+const HATCH_IMAGE = 'repeating-linear-gradient(135deg, var(--theme-illus-hatch) 0 2px, transparent 2px 7px)';
 
-const NOTE_META: Record<NoteBlock['tone'], { style: string; label: string }> = {
-  info: { style: 'bg-accent-soft', label: 'Catatan:' },
-  warn: { style: 'bg-attention-soft', label: 'Perhatikan:' },
-  success: { style: 'bg-correct-soft', label: 'Sudah benar:' },
-};
-
-const HATCH_IMAGE = 'repeating-linear-gradient(135deg, rgba(42,39,34,0.25) 0 2px, transparent 2px 7px)';
+const NOTE_TONE = { info: 'info', warn: 'warn', success: 'success' } as const satisfies Record<NoteBlock['tone'], CalloutTone>;
 
 export function NoteView({ block }: { block: NoteBlock }) {
-  const meta = NOTE_META[block.tone];
   return (
-    <div className={`max-w-[60ch] rounded-md p-4 text-[18px] leading-[1.65] text-ink ${meta.style}`}>
-      <strong className="font-bold">{meta.label}</strong> <RichText text={block.text} />
-    </div>
+    <Callout tone={NOTE_TONE[block.tone]} className="max-w-[60ch] text-[18px] leading-[1.65]">
+      <RichText text={block.text} />
+    </Callout>
   );
 }
 
@@ -53,13 +43,13 @@ export function FractionBarView({ block }: { block: FractionBarBlock }) {
             <div className="min-w-14 shrink-0 text-xl font-semibold tabular-nums text-ink">
               <RichText text={row.label || `${row.numerator}/${row.denominator}`} />
             </div>
-            <div className="flex h-10 flex-1 overflow-hidden rounded-sm border-[1.5px] border-ink bg-card">
+            <div className="flex h-10 flex-1 overflow-hidden rounded-sm border-theme border-edge bg-card">
               {Array.from({ length: cells }, (_, i) => {
                 const isShaded = i < shaded;
                 return (
                   <div
                     key={i}
-                    className={`flex-1 border-r-[1.5px] border-ink last:border-r-0 ${isShaded ? 'animate-cell-in bg-accent-fill' : 'bg-card'}`}
+                    className={`flex-1 border-r-[1.5px] border-edge last:border-r-0 ${isShaded ? 'animate-cell-in bg-accent-fill' : 'bg-card'}`}
                     style={isShaded ? { animationDelay: `${Math.min(i, 7) * 60}ms`, backgroundImage: HATCH_IMAGE } : undefined}
                   />
                 );
@@ -109,24 +99,24 @@ export function NumberLineView({ block }: { block: NumberLineBlock }) {
   const svgHeight = 200 + (labelRows - 1) * 44;
 
   return (
-    <div className="p-2" style={GRID_BG}>
+    <div className="bg-illus-empty p-2" style={GRID_STYLE}>
       <svg viewBox={`0 0 ${width} ${svgHeight}`} className="w-full" role="img" aria-label={`Garis bilangan dari ${block.start} sampai ${block.end}`}>
         <defs>
           <marker id={markerId} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill={ACCENT} />
+            <path d="M 0 0 L 10 5 L 0 10 z" className="fill-illus-accent" />
           </marker>
         </defs>
 
-        <line x1={padX} x2={width - padX} y1={lineY} y2={lineY} stroke={INK} strokeWidth={2.5} strokeLinecap="round" />
+        <line x1={padX} x2={width - padX} y1={lineY} y2={lineY} className="stroke-illus-ink" strokeWidth={2.5} strokeLinecap="round" />
         {Array.from({ length: block.ticks + 1 }, (_, i) => {
           const tx = x(lo + (i / block.ticks) * (hi - lo));
           const major = i === 0 || i === block.ticks;
           return (
-            <line key={i} x1={tx} x2={tx} y1={lineY - (major ? 11 : 6)} y2={lineY + (major ? 11 : 6)} stroke={INK} strokeWidth={major ? 2.5 : 2} strokeLinecap="round" />
+            <line key={i} x1={tx} x2={tx} y1={lineY - (major ? 11 : 6)} y2={lineY + (major ? 11 : 6)} className="stroke-illus-ink" strokeWidth={major ? 2.5 : 2} strokeLinecap="round" />
           );
         })}
-        <text x={padX} y={lineY + 42} textAnchor="middle" fontSize="34" fontWeight={600} fill={INK}>{block.start}</text>
-        <text x={width - padX} y={lineY + 42} textAnchor="middle" fontSize="34" fontWeight={600} fill={INK}>{block.end}</text>
+        <text x={padX} y={lineY + 42} textAnchor="middle" fontSize="34" fontWeight={600} className="fill-illus-ink">{block.start}</text>
+        <text x={width - padX} y={lineY + 42} textAnchor="middle" fontSize="34" fontWeight={600} className="fill-illus-ink">{block.end}</text>
 
         {block.arrows.map((arrow, index) => {
           const from = fractionValue(arrow.from) ?? lo;
@@ -139,17 +129,17 @@ export function NumberLineView({ block }: { block: NumberLineBlock }) {
               <path
                 d={`M ${x1} ${lineY - 6} Q ${mid} ${lineY - 78} ${x2} ${lineY - 8}`}
                 fill="none"
-                stroke={ACCENT}
+                className="stroke-illus-accent"
                 strokeWidth={2.5}
                 strokeLinecap="round"
                 strokeDasharray={arrow.hidden_end ? '6 5' : undefined}
                 markerEnd={`url(#${markerId})`}
               />
-              <text x={mid} y={lineY - 62} textAnchor="middle" fontSize="34" fontWeight={600} fill={ACCENT_INK}>{arrow.label}</text>
+              <text x={mid} y={lineY - 62} textAnchor="middle" fontSize="34" fontWeight={600} className="fill-illus-accent-ink">{arrow.label}</text>
               {arrow.hidden_end && (
                 <g>
-                  <circle cx={x2} cy={lineY - 30} r={20} fill={MARK} stroke={INK} strokeWidth={2} />
-                  <text x={x2} y={lineY - 20} textAnchor="middle" fontSize="30" fontWeight={600} fill={INK}>?</text>
+                  <circle cx={x2} cy={lineY - 30} r={20} className="fill-illus-mark stroke-illus-ink" strokeWidth={2} />
+                  <text x={x2} y={lineY - 20} textAnchor="middle" fontSize="30" fontWeight={600} className="fill-illus-ink">?</text>
                 </g>
               )}
             </g>
@@ -158,8 +148,8 @@ export function NumberLineView({ block }: { block: NumberLineBlock }) {
 
         {pointItems.map((item, order) => (
           <g key={`point-${item.index}`}>
-            <circle cx={x(item.value)} cy={lineY} r={8} fill={ACCENT} stroke={INK} strokeWidth={2} />
-            <text x={labelX[order]} y={lineY + 80 + (order % labelRows) * 44} textAnchor="middle" fontSize="34" fontWeight={600} fill={INK}>{item.point.label}</text>
+            <circle cx={x(item.value)} cy={lineY} r={8} className="fill-illus-accent stroke-illus-ink" strokeWidth={2} />
+            <text x={labelX[order]} y={lineY + 80 + (order % labelRows) * 44} textAnchor="middle" fontSize="34" fontWeight={600} className="fill-illus-ink">{item.point.label}</text>
           </g>
         ))}
       </svg>
@@ -247,7 +237,7 @@ export function StepFlowView({ block }: { block: StepFlowBlock }) {
             {step.math && <MathLines math={step.math} />}
             {step.locked && (
               <>
-                <div className="mt-3 h-8 border-b-2 border-dashed border-ink-soft" aria-hidden="true" />
+                <div className="mt-3 h-8 border-b-2 border-dashed border-edge" aria-hidden="true" />
                 <p className="mt-1 text-base text-ink-soft">Tulis di bukumu</p>
               </>
             )}
