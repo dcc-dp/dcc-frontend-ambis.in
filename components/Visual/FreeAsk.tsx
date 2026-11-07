@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { Button, Callout, Field, Textarea } from '@/components/ui';
 import VisualCanvas from './VisualCanvas';
 import { API_BASE_URL } from '@/app/hooks/useCanvasSession';
 import { visualSpecFixtures } from '@/lib/fixtures/visualSpecFixtures';
@@ -70,9 +71,8 @@ export default function FreeAsk({ offline = false }: FreeAskProps) {
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <label className="block">
-          <span className="mb-1.5 block text-lg font-semibold text-ink">Mau belajar apa hari ini?</span>
-          <textarea
+        <Field label="Mau belajar apa hari ini?">
+          <Textarea
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
             onKeyDown={(event) => {
@@ -85,45 +85,38 @@ export default function FreeAsk({ offline = false }: FreeAskProps) {
             rows={2}
             disabled={loading}
             placeholder="Tulis pertanyaanmu, misalnya: kenapa 1/2 + 1/3 bukan 2/5?"
-            className="focus-pop w-full resize-none rounded-lg border-[1.5px] border-edge bg-card px-3.5 py-2.5 text-lg text-ink placeholder:text-ink-soft transition-colors duration-150 focus:border-accent focus:ring-[0.5px] focus:ring-accent disabled:bg-paper-deep disabled:opacity-60"
           />
-        </label>
-        <div className="flex flex-wrap gap-x-5 gap-y-1">
+        </Field>
+        <div className="flex flex-wrap gap-2">
           {SUGGESTIONS.map((suggestion) => (
-            <button
+            <Button
               key={suggestion}
-              type="button"
+              variant="secondary"
+              size="sm"
               disabled={loading}
               onClick={() => {
                 setQuestion(suggestion);
                 void ask(suggestion);
               }}
-              className="focus-pop min-h-11 px-1 py-1 text-left text-base text-accent-ink underline underline-offset-4 transition-colors duration-150 hover:bg-paper-deep disabled:opacity-50"
+              className="text-left"
             >
               {suggestion}
-            </button>
+            </Button>
           ))}
         </div>
-        <button
-          type="button"
-          disabled={loading || !question.trim()}
-          onClick={() => void ask(question)}
-          className="focus-pop min-h-12 w-full rounded-lg border border-transparent bg-accent px-4 text-lg font-semibold text-white transition duration-150 hover:bg-accent-ink active:scale-[.98] disabled:cursor-not-allowed disabled:border-line disabled:bg-paper-deep disabled:text-ink-soft disabled:active:scale-100"
-        >
+        <Button fullWidth disabled={loading || !question.trim()} onClick={() => void ask(question)}>
           {loading ? 'Sedang menggambar' : 'Jelaskan dengan gambar'}
-        </button>
+        </Button>
       </div>
 
       {error && (
-        <p role="alert" className="rounded-md bg-wrong-soft p-5 text-xl font-semibold text-wrong">
+        <Callout tone="error" live="assertive">
           {error}
-        </p>
+        </Callout>
       )}
 
       {degraded && visual && (
-        <p className="rounded-md bg-attention-soft p-4 text-base text-attention">
-          <strong className="font-bold">Perhatikan:</strong> Gambar penjelasannya belum bisa dibuat kali ini. Coba tanyakan lagi.
-        </p>
+        <Callout tone="warn">Gambar penjelasannya belum bisa dibuat kali ini. Coba tanyakan lagi.</Callout>
       )}
 
       {visual && <VisualCanvas spec={visual} />}

@@ -1,0 +1,57 @@
+body {
+  background-color: var(--theme-paper);
+  background-image: var(--theme-texture);
+  color: var(--theme-ink);
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+.theme-surface {
+  background-color: var(--theme-paper);
+  background-image: var(--theme-texture);
+  color: var(--theme-ink);
+}
+
+::selection {
+  background: var(--theme-mark);
+  color: var(--theme-ink);
+}
+
+dialog::backdrop {
+  background: var(--theme-scrim);
+}
+
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+
+@media print {
+  body {
+    background-image: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .focus-pop:focus-visible {
+    outline-color: Highlight;
+  }
+}
+
+/* Scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Button cursor */
+button {
+  cursor: pointer;
+}
+
+.focus-pop:focus-visible {
+  outline: 3px solid var(--theme-focus-ring);
+  outline-offset: 2px;
+}
+
+p {
+  text-wrap: pretty;
+}

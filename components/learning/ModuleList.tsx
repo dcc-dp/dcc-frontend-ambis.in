@@ -1,17 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ProgressBar } from './ProgressBar';
-
-interface ModuleItem {
-  id: string;
-  title: string;
-  chapterCount: number;
-  completedChapters: number;
-  description: string;
-  progress?: number;
-}
+import { Badge, Button, Card, ProgressBar } from '@/components/ui';
+import type { ModuleItem } from '@/lib/learning/subjectData';
 
 interface ModuleListProps {
   modules: ModuleItem[];
@@ -29,85 +20,64 @@ export function ModuleList({ modules, onSelectModule, subjectTitle = '' }: Modul
         const isComplete = module.completedChapters === module.chapterCount;
 
         return (
-          <div
+          <Card
             key={module.id}
-            className="group bg-white rounded-xl shadow-md transition-all duration-300 p-4 sm:p-6 hover:shadow-lg hover:-translate-y-1 cursor-pointer border border-gray-100 hover:border-blue-200"
+            className="cursor-pointer"
             onClick={() => onSelectModule(module.id)}
           >
-            <div className="flex items-start gap-3 sm:gap-4">
-              <div
-                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-white flex-shrink-0 ${
-                  isComplete
-                    ? 'bg-gradient-to-br from-green-400 to-green-600'
-                    : 'bg-gradient-to-br from-blue-400 to-blue-600'
+            <div className="flex items-start gap-4">
+              <span
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-lg font-bold ${
+                  isComplete ? 'bg-correct-soft text-correct' : 'bg-accent text-on-accent'
                 }`}
               >
-                {isComplete ? '✓' : index + 1}
-              </div>
+                {isComplete ? (
+                  <svg aria-hidden="true" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  index + 1
+                )}
+              </span>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
+              <div className="min-w-0 flex-1 space-y-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                   <div>
-                    <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-1">
-                      {module.title}
-                    </h4>
-                    <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-3">{module.description}</p>
+                    <h4 className="text-xl font-semibold text-ink">{module.title}</h4>
+                    <p className="text-base text-ink-soft">{module.description}</p>
                   </div>
-
-                  <div className="flex-shrink-0">
-                    <span
-                      className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-medium ${
-                        isComplete
-                          ? 'bg-green-100 text-green-800'
-                          : progress > 0
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
+                  <div className="shrink-0">
+                    <Badge tone={isComplete ? 'correct' : progress > 0 ? 'accent' : 'neutral'}>
                       {module.completedChapters}/{module.chapterCount}
-                    </span>
+                    </Badge>
                   </div>
                 </div>
 
                 <ProgressBar
-                  value={progress}
-                  showPercentage={false}
+                  ratio={progress / 100}
+                  label={`Progress: ${module.completedChapters} dari ${module.chapterCount} chapter`}
                 />
 
-                <div className="flex justify-between items-center mt-2">
-                  <p className="text-xs text-gray-500">
-                    {Math.round(progress)}% Selesai
-                  </p>
-                  <button
+                <div className="flex justify-end">
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
                       router.push(`/dashboard/learning/${subjectTitle.toLowerCase()}/${module.id}`);
                     }}
-                    className="text-blue-600 text-sm font-medium hover:text-blue-700 transition flex items-center gap-1 opacity-0 group-hover:opacity-100"
                   >
                     Lihat Detail
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
+                    <svg aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         );
       })}
     </div>
   );
 }
-
-export default ModuleList;

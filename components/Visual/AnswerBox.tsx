@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useId, useState } from 'react';
+import { Button, Field, Input } from '@/components/ui';
 
 export interface PracticeOption {
   key: string;
@@ -39,10 +40,10 @@ export default function AnswerBox({ kind, options, disabled, onSubmit }: AnswerB
           {options.map((option) => (
             <label
               key={option.key}
-              className={`flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-lg bg-card px-4 py-2 text-left text-lg font-semibold text-ink transition-colors duration-150 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ${
+              className={`flex min-h-14 w-full cursor-pointer items-center gap-3 rounded-lg border-theme px-4 py-2 text-left text-lg font-semibold text-ink transition-colors duration-150 has-[:disabled]:cursor-not-allowed has-[:disabled]:border-line has-[:disabled]:bg-paper-deep has-[:disabled]:text-ink-soft has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ${
                 picked === option.key
-                  ? 'border-2 border-accent bg-accent-soft'
-                  : 'border-[1.5px] border-edge hover:bg-paper-deep'
+                  ? 'border-accent bg-accent-soft'
+                  : 'border-edge bg-card hover:bg-paper-deep'
               }`}
             >
               <input
@@ -65,11 +66,8 @@ export default function AnswerBox({ kind, options, disabled, onSubmit }: AnswerB
           ))}
         </fieldset>
       ) : (
-        <label className="block">
-          <span className="mb-1.5 block">
-            <span className="inline-block rounded-sm bg-mark px-1 text-sm font-semibold text-ink">Jawabanmu</span>
-          </span>
-          <input
+        <Field label="Jawabanmu">
+          <Input
             value={text}
             disabled={disabled}
             onChange={(event) => setText(event.target.value)}
@@ -78,19 +76,13 @@ export default function AnswerBox({ kind, options, disabled, onSubmit }: AnswerB
             }}
             maxLength={2000}
             placeholder="Contoh: 3/4"
-            className="focus-pop min-h-12 w-full rounded-lg border-[1.5px] border-edge bg-card px-3.5 py-2 text-[22px] text-ink placeholder:text-ink-softtransition-colors duration-150 focus:border-accent focus:ring-[0.5px] focus:ring-accent disabled:bg-paper-deep disabled:opacity-60"
           />
-        </label>
+        </Field>
       )}
 
-      <button
-        type="button"
-        disabled={!canSend}
-        onClick={send}
-        className="focus-pop min-h-12 w-full rounded-lg border border-transparent bg-accent px-4 text-lg font-semibold text-white transition duration-150 hover:bg-accent-ink active:scale-[.98] disabled:cursor-not-allowed disabled:border-line disabled:bg-paper-deep disabled:text-ink-soft disabled:active:scale-100"
-      >
+      <Button fullWidth disabled={!canSend} onClick={send}>
         {disabled ? 'Sedang memeriksa' : 'Kirim jawaban'}
-      </button>
+      </Button>
     </div>
   );
 }

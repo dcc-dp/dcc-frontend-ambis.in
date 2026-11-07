@@ -38,7 +38,7 @@ function renderBlock(block: VisualBlock): React.ReactNode {
 export default function VisualCanvas({ spec }: { spec: VisualSpec }) {
   return (
     <section
-      className="space-y-8 rounded-lg border border-line bg-card p-5 sm:p-6"
+      className="space-y-8 rounded-lg border-theme border-line bg-card p-5 sm:p-6"
       aria-label={spec.title || 'Kanvas penjelasan'}
     >
       <header className="space-y-1">
@@ -48,16 +48,15 @@ export default function VisualCanvas({ spec }: { spec: VisualSpec }) {
             <span className="relative inline-block">
               {spec.title}
               <svg
-                className="absolute -bottom-2 left-0 h-2 w-full text-accent"
+                className="absolute -bottom-2 left-0 h-2 w-full"
                 viewBox="0 0 100 8"
                 preserveAspectRatio="none"
                 fill="none"
-                stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
                 aria-hidden="true"
               >
-                <path d="M2 4 Q 7 0 12 4 T 22 4 T 32 4 T 42 4 T 52 4 T 62 4 T 72 4 T 82 4 T 92 4 T 98 4" vectorEffect="non-scaling-stroke" />
+                <path className="stroke-accent" d="M2 4 Q 7 0 12 4 T 22 4 T 32 4 T 42 4 T 52 4 T 62 4 T 72 4 T 82 4 T 92 4 T 98 4" vectorEffect="non-scaling-stroke" />
               </svg>
             </span>
           </h2>
