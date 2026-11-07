@@ -1,4 +1,4 @@
-import { DEFAULT_STUDENT_ID } from './types';
+import { getStudentId } from '@/lib/studentId';
 import { isValidStudentName } from './storage';
 import type { ChatHistory, Message, StudentProfile } from './types';
 
@@ -29,7 +29,7 @@ export function buildStudentContext(
   previousSessions: string[]
 ) {
   return {
-    student_id: profile.studentId || DEFAULT_STUDENT_ID,
+    student_id: profile.studentId || getStudentId(),
     name: activeName,
     grade: profile.grade,
     goal: profile.goal,

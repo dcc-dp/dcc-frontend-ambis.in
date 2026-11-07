@@ -1,12 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { DesktopNav, MobileNav } from '@/components/Layout/AppNav';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { getStudentId } from '@/lib/studentId';
 
 export function AppShell({ children }: { children: ReactNode }) {
+  useEffect(() => {
+    getStudentId();
+  }, []);
+
   return (
     <div className="flex min-h-dvh flex-col bg-paper text-ink">
       <a

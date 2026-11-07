@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { readSSE } from '@/lib/sse';
+import { getStudentId } from '@/lib/studentId';
 import { normalizeVisualSpec, type InterventionKind, type VisualSpec } from '@/lib/visualSpec';
 
 export type CanvasPhase = 'idle' | 'working' | 'done' | 'error';
@@ -90,6 +91,7 @@ export function useCanvasSession(exerciseId: string | null) {
             exercise_id: exerciseId,
             mode: 'ask',
             stream: true,
+            student_id: getStudentId(),
             ...idsRef.current,
           }),
           signal: controller.signal,
