@@ -30,7 +30,6 @@ export default function QuizPage() {
 
   const handleSubmit = () => {
     if (Object.keys(answers).length < questions.length) {
-      alert('Harap jawab semua soal terlebih dahulu!');
       return;
     }
     setIsSubmitted(true);

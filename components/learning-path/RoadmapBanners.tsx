@@ -6,20 +6,27 @@ import type { LearningPathData } from '@/lib/learning-path/types';
 interface RoadmapBannersProps {
   data: LearningPathData;
   isFetchingExercises: boolean;
+  notice?: string | null;
   onStartDiagnostic: () => void;
 }
 
-export function RoadmapBanners({ data, isFetchingExercises, onStartDiagnostic }: RoadmapBannersProps) {
+export function RoadmapBanners({ data, isFetchingExercises, notice, onStartDiagnostic }: RoadmapBannersProps) {
   return (
     <div className="mb-6 flex flex-col gap-4">
+      {notice && (
+        <Callout tone="warn" live="polite">
+          {notice}
+        </Callout>
+      )}
+
       {data.roadmapReasoning && (
-        <Callout tone="info" title="Analisis dan keputusan kurikulum personal Kak Ambis:">
+        <Callout tone="info" title="Kata Kak Ambis:">
           {data.roadmapReasoning}
         </Callout>
       )}
 
       {data.aiMessage && (
-        <Callout tone="warn" title="Informasi sambungan AI:">
+        <Callout tone="warn" title="Catatan:">
           {data.aiMessage}
         </Callout>
       )}
@@ -29,7 +36,7 @@ export function RoadmapBanners({ data, isFetchingExercises, onStartDiagnostic }:
           <div>
             <h3 className="text-lg font-bold text-ink">Tes Diagnostik Belum Dikerjakan</h3>
             <p className="mt-1 text-base text-ink-soft">
-              Yuk kerjakan 2 soal cepat agar Kak Ambis bisa memetakan miskonsepsi dan menyusun roadmap yang pas buat kamu!
+              Yuk kerjakan 2 soal cepat agar Kak Ambis bisa memetakan miskonsepsi dan menyusun peta belajar yang pas buat kamu!
             </p>
           </div>
           <Button onClick={onStartDiagnostic} disabled={isFetchingExercises} className="shrink-0">
@@ -39,11 +46,11 @@ export function RoadmapBanners({ data, isFetchingExercises, onStartDiagnostic }:
       )}
 
       {data.diagnosticCompleted && (
-        <Callout tone="success" title="Hasil diagnostik berhasil dipetakan:">
+        <Callout tone="success" title="Hasil tes awalmu:">
           <span className="flex flex-wrap items-center justify-between gap-3">
             <span>
-              Penguasaan awalmu <span className="font-bold">{data.diagnosticScore || 0}%</span>. Roadmap telah
-              dipersonalisasi AI!
+              Pemahaman awalmu <span className="font-bold">{data.diagnosticScore || 0}%</span>. Peta belajarmu
+              sudah disesuaikan untukmu!
             </span>
             <Button variant="ghost" size="sm" onClick={onStartDiagnostic}>
               Ulangi Tes

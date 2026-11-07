@@ -51,7 +51,7 @@ export function FeatureCards({ onLearningPathClick }: FeatureCardsProps) {
           }
         />
         <FeatureCard
-          title="Learning Path"
+          title="Jalur Belajar"
           description="Program belajar terstruktur Matematika & Informatika"
           action="Buka Jalur Belajar"
           iconClassName="bg-mark text-ink"

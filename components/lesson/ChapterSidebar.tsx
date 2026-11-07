@@ -36,8 +36,8 @@ export function ChapterSidebar({
           ← Kembali ke {moduleTitle}
         </button>
       </div>
-      <nav aria-label="Daftar Chapter" className="flex-1 overflow-y-auto p-3">
-        <p className="mb-2 text-sm font-semibold text-ink-soft">Daftar Chapter</p>
+      <nav aria-label="Daftar Bab" className="flex-1 overflow-y-auto p-3">
+        <p className="mb-2 text-sm font-semibold text-ink-soft">Daftar Bab</p>
         <div className="space-y-1">
           {chapters.map((chapter, idx) => {
             const isActive = chapter.id === currentChapterId;

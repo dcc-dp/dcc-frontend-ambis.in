@@ -11,6 +11,7 @@ interface RoadmapViewProps {
   currentStep: RoadmapStep | undefined;
   progressPercent: number;
   isFetchingExercises: boolean;
+  notice?: string | null;
   onStartDiagnostic: () => void;
   onEnterStep: (step: RoadmapStep) => void;
   onTakeQuiz: (step: RoadmapStep) => void;
@@ -21,6 +22,7 @@ export function RoadmapView({
   currentStep,
   progressPercent,
   isFetchingExercises,
+  notice,
   onStartDiagnostic,
   onEnterStep,
   onTakeQuiz,
@@ -30,22 +32,22 @@ export function RoadmapView({
     <div className="flex-1 p-4 md:p-8">
       <div className="mx-auto max-w-4xl">
         <div className="mb-6 text-center">
-          <Badge tone="accent" className="mb-2 inline-block">Mode 1: Jalur Belajar Terpandu</Badge>
+          <Badge tone="accent" className="mb-2 inline-block">Jalur belajar bersama Kak Ambis</Badge>
           <h2 className="mb-1 text-3xl font-extrabold text-ink">
-            Roadmap Belajar: {data.subtopic.toUpperCase()}
+            Peta Belajar: {data.subtopic.toUpperCase()}
           </h2>
           <p className="mx-auto max-w-lg text-lg text-ink-soft">
-            {goal ? `Target: ${goal} • ` : ''}Level: {difficultyLabel(data.difficulty)}
+            {goal ? `Target: ${goal} • ` : ''}Tingkat: {difficultyLabel(data.difficulty)}
           </p>
         </div>
 
-        <RoadmapBanners data={data} isFetchingExercises={isFetchingExercises} onStartDiagnostic={onStartDiagnostic} />
+        <RoadmapBanners data={data} isFetchingExercises={isFetchingExercises} notice={notice} onStartDiagnostic={onStartDiagnostic} />
         <RoadmapTimeline roadmap={data.roadmap} onEnterStep={onEnterStep} onTakeQuiz={onTakeQuiz} />
 
         <Card className="mx-auto mt-8 max-w-lg">
           <ProgressBar
             ratio={progressPercent / 100}
-            label="Total Kemajuan Milestone"
+            label="Kemajuan jalur belajarmu"
             valueText={`${progressPercent} persen selesai`}
           />
         </Card>
