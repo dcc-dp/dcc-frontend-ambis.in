@@ -8,7 +8,7 @@ import { QuizOptions } from '@/components/learning/quiz/QuizOptions';
 import { QuizResult } from '@/components/learning/quiz/QuizResult';
 import { buildOfflineFallback, buildServiceFallback } from '@/components/learning/quiz/fallback';
 import type { AgentFeedback, QuizProps } from '@/components/learning/quiz/types';
-
+import { getStudentId } from '@/lib/studentId';
 export type { ExerciseItem } from '@/components/learning/quiz/types';
 
 export function Quiz({
@@ -55,7 +55,7 @@ export function Quiz({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          student_id: '00000000-0000-0000-0000-000000000901',
+          student_id: getStudentId(),
           exercise_id: currentQuestion.id,
           student_answer: answer,
           mode: isDiagnostic ? 'diagnostic' : 'learning_path',

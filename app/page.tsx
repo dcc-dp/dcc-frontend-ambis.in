@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { AppShell } from '@/components/Layout/AppShell';
 import { HomeCard } from '@/components/home/HomeCard';
+import { StudentCard } from '@/components/home/StudentCard';
 import { ThemeSwitcher } from '@/components/theme/ThemeSwitcher';
 import { Card } from '@/components/ui';
 
@@ -91,6 +92,7 @@ export default function HomePage() {
           </h2>
           <ThemeSwitcher />
         </Card>
+        <StudentCard />
         {process.env.NODE_ENV !== 'production' && (
           <Link
             href="/chat"

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { isValidStudentName, loadChatHistory, MODEL_STORAGE_KEY } from '@/lib/chat/storage';
 import { DEFAULT_MODEL_ID, DEFAULT_STUDENT_ID, STUDENT_PROFILE_KEY } from '@/lib/chat/types';
 import { safeGet, safeSet } from '@/lib/safeStorage';
+import { getStudentId } from '@/lib/studentId';
 import type { ChatHistory, InitialAnswers, StudentProfile } from '@/lib/chat/types';
 
 interface BootstrapParams {
@@ -13,7 +14,7 @@ interface BootstrapParams {
 }
 
 function readStoredProfile(): StudentProfile {
-  let activeProfile: StudentProfile = { studentId: DEFAULT_STUDENT_ID };
+  let activeProfile: StudentProfile = { studentId: getStudentId() };
   try {
     const storedProfile = safeGet(STUDENT_PROFILE_KEY);
     if (storedProfile) {
@@ -92,7 +93,7 @@ export function useChatBootstrap({ setChatHistory }: BootstrapParams) {
       savedModel && !savedModel.includes('llama-3.3') && !savedModel.includes('compound');
     const modelId = isModelUsable ? savedModel : DEFAULT_MODEL_ID;
 
-    const activeProfile = readStoredProfile();
+    const activeProfile = { ...readStoredProfile(), studentId: getStudentId() };
     const hasCompleted = safeGet('hasCompletedInitialQuestions') === 'true';
 
     queueMicrotask(() => {
