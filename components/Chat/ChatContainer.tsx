@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import MessageList from '@/components/Chat/MessageList';
 import { Button } from '@/components/ui';
 import type { CanvasData } from '@/components/Canvas/LearningCanvas';
@@ -25,6 +25,7 @@ interface ChatContainerProps {
   selectedModelId?: string;
   onModelChange?: (modelId: string) => void;
   onOpenCanvas?: (data: CanvasData) => void;
+  intro?: ReactNode;
 }
 
 export default function ChatContainer({
@@ -37,6 +38,7 @@ export default function ChatContainer({
   onMessageChange,
   onSendMessage,
   onOpenCanvas,
+  intro,
 }: ChatContainerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -49,16 +51,18 @@ export default function ChatContainer({
   }, [message]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > 1) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const placeholder = mode === 'learning-path'
-    ? 'Tanya tentang materi yang kamu pelajari... (Shift+Enter untuk baris baru)'
-    : 'Ketik atau paste teks panjang... (Shift+Enter untuk baris baru)';
+    ? 'Tanya Kak Ambis tentang materi ini...'
+    : 'Ketik pertanyaanmu di sini...';
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto px-4 space-y-4">
+      <div className="flex-1 overflow-y-auto py-3">
+        <div className="mx-auto w-full max-w-4xl space-y-4 px-4">
+        {intro}
         <MessageList messages={messages} mode={mode} onOpenCanvas={onOpenCanvas} />
         {isLoading && (
           <div className="flex justify-start" role="status" aria-label="Kak Ambis sedang mengetik">
@@ -71,32 +75,29 @@ export default function ChatContainer({
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      <div className="flex-shrink-0 border-t border-line bg-card p-4">
-        <div className="max-w-3xl mx-auto">
-          {quickPrompts && quickPrompts.length > 0 && (
-            <div className="flex items-center gap-2 mb-2.5 overflow-x-auto pb-1 no-scrollbar">
-              <span className="text-sm font-bold text-ink-soft shrink-0">Saran Cepat:</span>
+        {quickPrompts && quickPrompts.length > 0 && (
+          <div className="pb-2">
+            <p className="mb-2 text-sm font-bold text-ink-soft">Saran cepat</p>
+            <div className="flex flex-wrap gap-2">
               {quickPrompts.map((qp, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => onQuickPromptClick?.(qp)}
-                  className="min-h-11 shrink-0 whitespace-nowrap rounded-full border-theme border-edge bg-card px-4 text-base font-semibold text-accent-ink transition-colors hover:bg-accent-soft focus-pop"
+                  className="min-h-11 rounded-full border-theme border-edge bg-card px-4 py-2 text-left text-base font-semibold text-accent-ink transition-colors hover:bg-accent-soft focus-pop"
                 >
                   {qp}
                 </button>
               ))}
             </div>
-          )}
-
-          <div className="flex items-center justify-end mb-2">
-            <span className="text-sm text-ink-soft hidden sm:block">
-              Shift+Enter untuk baris baru
-            </span>
           </div>
+        )}
+        <div ref={messagesEndRef} />
+        </div>
+      </div>
+
+      <div className="flex-shrink-0 border-t border-line bg-card py-4">
+        <div className="mx-auto w-full max-w-4xl px-4">
           <div className="flex gap-3 items-center">
             <textarea
               ref={textareaRef}
@@ -121,6 +122,9 @@ export default function ChatContainer({
               {isLoading ? '...' : 'Kirim'}
             </Button>
           </div>
+          <p className="mt-1.5 hidden text-right text-sm text-ink-soft md:block">
+            Enter untuk kirim · Shift+Enter untuk baris baru
+          </p>
         </div>
       </div>
     </div>
