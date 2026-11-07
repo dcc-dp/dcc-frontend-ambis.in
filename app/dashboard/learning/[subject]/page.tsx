@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { Button, Card, ProgressBar } from '@/components/ui';
 import { ModuleList } from '@/components/learning/ModuleList';
+import { useModuleProgress } from '@/hooks/useModuleProgress';
 import { moduleData, sampleSubjectNames } from '@/lib/learning/subjectData';
 import type { ModuleItem } from '@/lib/learning/subjectData';
 
@@ -11,7 +12,8 @@ export default function LearningSubjectPage() {
   const router = useRouter();
   const subject = params.subject as string || 'matematika';
 
-  const modules: ModuleItem[] = moduleData[subject] || moduleData.matematika;
+  const baseModules: ModuleItem[] = moduleData[subject] || moduleData.matematika;
+  const modules = useModuleProgress(subject, baseModules);
   const subjectTitle = sampleSubjectNames[subject] || 'Matematika';
 
   const totalChapters = modules.reduce((sum, m) => sum + m.chapterCount, 0);
@@ -39,18 +41,18 @@ export default function LearningSubjectPage() {
           <svg aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Kembali ke Learning Path
+          Kembali ke Jalur Belajar
         </Button>
 
         <h1 className="text-3xl font-bold text-ink">{subjectTitle}</h1>
-        <p className="text-base text-ink-soft">Pilih module untuk memulai belajar</p>
+        <p className="text-base text-ink-soft">Pilih modul untuk mulai belajar</p>
       </div>
 
       <Card padding="lg" className="space-y-4">
-        <h2 className="text-xl font-semibold text-ink">Progress Keseluruhan</h2>
+        <h2 className="text-xl font-semibold text-ink">Kemajuan Keseluruhan</h2>
         <ProgressBar
           ratio={totalProgress / 100}
-          label={`${completedChapters} dari ${totalChapters} chapter selesai`}
+          label={`${completedChapters} dari ${totalChapters} bab selesai`}
         />
       </Card>
 

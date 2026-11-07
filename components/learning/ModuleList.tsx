@@ -55,7 +55,7 @@ export function ModuleList({ modules, onSelectModule, subjectTitle = '' }: Modul
 
                 <ProgressBar
                   ratio={progress / 100}
-                  label={`Progress: ${module.completedChapters} dari ${module.chapterCount} chapter`}
+                  label={`Kemajuan: ${module.completedChapters} dari ${module.chapterCount} bab`}
                 />
 
                 <div className="flex justify-end">

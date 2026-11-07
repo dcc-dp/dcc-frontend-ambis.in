@@ -7,8 +7,8 @@ interface SummaryViewProps {
   totalProgress: number;
   completedModules: number;
   totalModules: number;
-  studyTime: number;
-  averageQuizScore: number;
+  studyTime?: number;
+  averageQuizScore?: number;
   modules: Array<{
     id: string;
     title: string;
@@ -37,33 +37,35 @@ export function SummaryView({
         <h1 className="text-3xl font-bold text-ink">
           PEMBELAJARAN {pathTitle.toUpperCase()}
         </h1>
-        <p className="text-base text-ink-soft">Overview kemajuan belajarmu</p>
+        <p className="text-base text-ink-soft">Ringkasan kemajuan belajarmu</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4">
         <Card>
-          <p className="text-base text-ink-soft">Progres Keseluruhan</p>
+          <p className="text-base text-ink-soft">Kemajuan Keseluruhan</p>
           <p className="text-2xl font-bold tabular-nums">{totalProgress}%</p>
         </Card>
         <Card>
-          <p className="text-base text-ink-soft">Module Selesai</p>
+          <p className="text-base text-ink-soft">Modul Selesai</p>
           <p className="text-2xl font-bold tabular-nums">{completedModules}/{totalModules}</p>
-          <p className="text-sm text-ink-soft">semua module</p>
+          <p className="text-sm text-ink-soft">semua modul</p>
         </Card>
-        <Card>
-          <p className="text-base text-ink-soft">Waktu Belajar</p>
-          <p className="text-2xl font-bold tabular-nums">{studyTime}h</p>
-          <p className="text-sm text-ink-soft">total jam</p>
-        </Card>
-        <Card>
-          <p className="text-base text-ink-soft">Rata-rata Quiz</p>
-          <p className="text-2xl font-bold tabular-nums">{averageQuizScore}%</p>
-          <p className="text-sm text-ink-soft">skor rata-rata</p>
-        </Card>
+        {studyTime !== undefined && (
+          <Card>
+            <p className="text-base text-ink-soft">Waktu Belajar</p>
+            <p className="text-2xl font-bold tabular-nums">{studyTime} jam</p>
+          </Card>
+        )}
+        {averageQuizScore !== undefined && (
+          <Card>
+            <p className="text-base text-ink-soft">Rata-rata Kuis</p>
+            <p className="text-2xl font-bold tabular-nums">{averageQuizScore}%</p>
+          </Card>
+        )}
       </div>
 
       <Card as="section" padding="lg" className="space-y-4">
-        <h2 className="text-xl font-semibold text-ink">Progress Module</h2>
+        <h2 className="text-xl font-semibold text-ink">Kemajuan Modul</h2>
         <div className="space-y-4">
           {modules.map((module) => (
             <Card key={module.id} as="article" tone="sunken" className="space-y-3">
@@ -71,7 +73,7 @@ export function SummaryView({
                 <div>
                   <h3 className="text-lg font-semibold text-ink">{module.title}</h3>
                   <p className="text-base text-ink-soft">
-                    {module.completedChapters}/{module.totalChapters} chapter
+                    {module.completedChapters}/{module.totalChapters} bab
                   </p>
                 </div>
                 {module.isCompleted && (
@@ -86,11 +88,11 @@ export function SummaryView({
 
               <ProgressBar
                 ratio={module.progress / 100}
-                label={`Progress: ${module.completedChapters} dari ${module.totalChapters} chapter`}
+                label={`Kemajuan: ${module.completedChapters} dari ${module.totalChapters} bab`}
               />
 
               {module.averageScore !== undefined && (
-                <p className="text-base text-ink-soft">Rata-rata quiz: {module.averageScore}%</p>
+                <p className="text-base text-ink-soft">Rata-rata kuis: {module.averageScore}%</p>
               )}
               {onViewModule && (
                 <div className="flex justify-end">
@@ -109,7 +111,7 @@ export function SummaryView({
 
       {completedModules === totalModules && totalModules > 0 && (
         <Callout tone="success" title={`Selamat! Kamu Telah Menyelesaikan ${pathTitle}!`}>
-          Kamu telah menyelesaikan semua module dan chapter.
+          Kamu telah menyelesaikan semua modul dan bab.
         </Callout>
       )}
     </div>

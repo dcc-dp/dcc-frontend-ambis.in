@@ -53,8 +53,8 @@ export default function ChapterContentPage() {
   if (!currentChapter) {
     return (
       <div className="p-8 text-center">
-        <h2 className="mb-2 text-2xl font-bold text-ink">Chapter Tidak Ditemukan</h2>
-        <p className="mb-4 text-lg text-ink-soft">Chapter yang kamu cari tidak tersedia.</p>
+        <h2 className="mb-2 text-2xl font-bold text-ink">Bab Tidak Ditemukan</h2>
+        <p className="mb-4 text-lg text-ink-soft">Bab yang kamu cari tidak tersedia.</p>
         <Button onClick={() => router.back()}>Kembali</Button>
       </div>
     );

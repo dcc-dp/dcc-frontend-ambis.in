@@ -57,8 +57,8 @@ export async function requestDynamicRoadmap(
 
   return {
     steps: generateInitialRoadmap(subtopic),
-    reasoning: 'Roadmap terstruktur disusun berdasarkan kurikulum acuan.',
+    reasoning: 'Peta belajar disusun berdasarkan kurikulum.',
     isFallback: true,
-    message: 'Maaf ya, Kak Ambis sedang mengalami sedikit kendala koneksi ke server AI saat menyusun roadmap otomatis. Untuk sementara, Kak Ambis siapkan rekomendasi kurikulum standar ini ya!',
+    message: 'Maaf ya, Kak Ambis sedang ada kendala saat menyusun peta belajar untukmu. Untuk sementara, Kak Ambis siapkan peta belajar standar ini ya!',
   };
 }

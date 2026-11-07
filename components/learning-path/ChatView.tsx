@@ -3,6 +3,7 @@
 import ChatContainer from '@/components/Chat/ChatContainer';
 import { Badge, Button } from '@/components/ui';
 import type { LearningPathData, Message, RoadmapStep } from '@/lib/learning-path/types';
+import { StepIntro } from './StepIntro';
 
 interface ChatViewProps {
   data: LearningPathData | null;
@@ -29,28 +30,23 @@ export function ChatView({
   onTakeQuiz,
   onShowRoadmap,
 }: ChatViewProps) {
+  const stepNumber = data && currentStep ? data.roadmap.findIndex((s) => s.id === currentStep.id) + 1 : 0;
+
   return (
-    <div className="flex h-[75dvh] min-h-96 flex-col">
+    <div className="flex h-[calc(100dvh-15rem)] min-h-96 flex-col md:h-[calc(100dvh-9rem)]">
       {data && currentStep && (
-        <div className="border-b-theme border-line bg-card px-4 py-3">
-          <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Badge tone="accent">Tahap {data.roadmap.findIndex((s) => s.id === currentStep.id) + 1}</Badge>
-              <h2 className="text-lg font-bold text-ink">
-                {currentStep.title} — {data.subtopic}
-              </h2>
-            </div>
-            <div className="flex items-center gap-2">
-              {currentStep.hasQuiz && (
-                <Button size="sm" onClick={() => onTakeQuiz(currentStep)}>
-                  Kerjakan Soal
-                </Button>
-              )}
-              <Button size="sm" variant="secondary" onClick={onShowRoadmap}>
-                Lihat Roadmap
-              </Button>
-            </div>
-          </div>
+        <div className="mx-auto flex w-full max-w-4xl flex-wrap items-center gap-2 px-4 py-2">
+          <Button size="sm" variant="secondary" onClick={onShowRoadmap}>
+            Lihat Peta Belajar
+          </Button>
+          <Badge tone="accent">
+            Tahap {stepNumber} dari {data.roadmap.length}
+          </Badge>
+          {currentStep.hasQuiz && (
+            <Button size="sm" className="ml-auto" onClick={() => onTakeQuiz(currentStep)}>
+              Kerjakan Soal
+            </Button>
+          )}
         </div>
       )}
       <div className="min-h-0 flex-1">
@@ -60,6 +56,7 @@ export function ChatView({
           isLoading={isLoading}
           mode="learning-path"
           quickPrompts={quickPrompts}
+          intro={data && currentStep ? <StepIntro step={currentStep} stepNumber={stepNumber} subtopic={data.subtopic} /> : undefined}
           onQuickPromptClick={(prompt) => onSendMessage(prompt)}
           onMessageChange={onMessageChange}
           onSendMessage={onSendMessage}

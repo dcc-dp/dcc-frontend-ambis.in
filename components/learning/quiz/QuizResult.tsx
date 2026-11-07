@@ -18,8 +18,8 @@ export function QuizResult({
 }: QuizResultProps) {
   const note = isDiagnostic
     ? masteryPercent >= 60
-      ? 'Pemahaman awalmu cukup bagus! Beberapa konsep pengayaan telah ditambahkan ke roadmap.'
-      : 'Kak Ambis telah menyesuaikan urutan roadmap agar materi fondasi dasar diajarkan bertahap.'
+      ? 'Pemahaman awalmu cukup bagus! Beberapa konsep pengayaan telah ditambahkan ke peta belajar.'
+      : 'Kak Ambis telah menyesuaikan urutan peta belajar agar materi fondasi dasar diajarkan bertahap.'
     : masteryPercent >= 70
     ? 'Pemahaman konsepmu sangat baik! Kamu siap lanjut ke tahap berikutnya.'
     : 'Sudah bagus! Terus asah pemahamanmu dengan latihan terbimbing ya.';
@@ -61,7 +61,7 @@ export function QuizResult({
             </span>
           )}
           <p className="mt-2 text-base font-medium">
-            Roadmap belajarmu telah disesuaikan berdasarkan analisis di atas.
+            Peta belajarmu sudah disesuaikan berdasarkan hasil di atas.
           </p>
         </Callout>
       )}
@@ -69,7 +69,7 @@ export function QuizResult({
       {onClose && (
         <div className="flex justify-center">
           <Button size="lg" onClick={onClose}>
-            {isDiagnostic ? 'Buka Roadmap Belajar yang Disesuaikan' : 'Lanjut ke Roadmap'}
+            {isDiagnostic ? 'Buka Peta Belajar yang Disesuaikan' : 'Kembali ke Peta Belajar'}
           </Button>
         </div>
       )}

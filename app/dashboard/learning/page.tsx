@@ -33,7 +33,7 @@ export default function LearningPathsPage() {
 
   return (
     <div className="flex flex-col">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 pt-4">
+      <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-3 px-4 pt-4">
         <h1 className="text-2xl font-bold text-ink">Jalur belajar</h1>
         <div className="flex flex-wrap items-center gap-2">
           {!learningPathData && (
@@ -74,6 +74,7 @@ export default function LearningPathsPage() {
           currentStep={currentStep}
           progressPercent={page.progressPercent}
           isFetchingExercises={page.isFetchingExercises}
+          notice={page.diagnosticNotice}
           onStartDiagnostic={page.handleStartDiagnostic}
           onEnterStep={page.handleEnterStepChat}
           onTakeQuiz={page.handleTakePracticeQuiz}
@@ -108,7 +109,9 @@ export default function LearningPathsPage() {
         onSkip={() => page.setShowInitialModal(false)}
         onSubmit={page.handleInitialQuestionsSubmit}
       />
-      {!isQuizMode && <Mascot message={page.mascotMessage} mood={page.mascotMood} showChat={true} />}
+      {!isQuizMode && page.showRoadmap && learningPathData && (
+        <Mascot message={page.mascotMessage} mood={page.mascotMood} showChat={true} />
+      )}
     </div>
   );
 }

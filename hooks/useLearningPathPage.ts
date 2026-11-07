@@ -28,6 +28,7 @@ export function useLearningPathPage() {
   const [diagnosticExercises, setDiagnosticExercises] = useState<ExerciseItem[]>([]);
   const [practiceExercises, setPracticeExercises] = useState<ExerciseItem[]>([]);
   const [isFetchingExercises, setIsFetchingExercises] = useState(false);
+  const [diagnosticNotice, setDiagnosticNotice] = useState<string | null>(null);
 
   const chat = useLearningPathChat({ learningPathData, setMascotMessage, setMascotMood });
   const { chatHistory, setChatHistory, isSaving, loadProactiveLessonIntro } = chat;
@@ -100,7 +101,7 @@ export function useLearningPathPage() {
     setLearningPathData(pathData);
     saveLearningPathData(pathData);
     setShowRoadmap(true);
-    setMascotMessage(`Roadmap untuk ${answers.subtopic} sudah dibuat! Yuk mulai dengan tes diagnostik awal.`);
+    setMascotMessage(`Peta belajar untuk ${answers.subtopic} sudah dibuat! Yuk mulai dengan tes diagnostik awal.`);
     setMascotMood('happy');
 
     const diag = await fetchCurriculumExercises(conceptId, true);
@@ -109,6 +110,7 @@ export function useLearningPathPage() {
 
   const handleStartDiagnostic = async () => {
     if (!learningPathData) return;
+    setDiagnosticNotice(null);
     let exercises = diagnosticExercises;
     if (exercises.length === 0) {
       exercises = await fetchCurriculumExercises(learningPathData.conceptId, true);
@@ -120,7 +122,7 @@ export function useLearningPathPage() {
       setMascotMessage('Yuk kerjakan tes diagnostik singkat ini dengan jujur ya! Kak Ambis akan menganalisis pemahamanmu.');
       setMascotMood('thinking');
     } else {
-      alert('Belum ada soal diagnostik yang tersedia untuk konsep ini.');
+      setDiagnosticNotice('Soal tes awal belum bisa dimuat. Coba lagi sebentar lagi, ya.');
     }
   };
 
@@ -150,7 +152,7 @@ export function useLearningPathPage() {
     saveLearningPathData(updatedData);
     updateStudentProgressStorage('pecahan', 'Pecahan', finalMastery);
 
-    setMascotMessage(`Asesmen diagnostik selesai! Penguasaan awalmu: ${finalMastery}%. Roadmap belajar telah dipersonalisasi oleh AI!`);
+    setMascotMessage(`Asesmen diagnostik selesai! Pemahaman awalmu: ${finalMastery}%. Peta belajarmu sudah disesuaikan untukmu!`);
     setMascotMood('happy');
   };
 
@@ -206,7 +208,7 @@ export function useLearningPathPage() {
     saveLearningPathData(updatedData);
     updateStudentProgressStorage('pecahan', 'Pecahan', finalMastery);
 
-    setMascotMessage(`Hebat sekali! Latihan ${currentQuizStep.title} selesai! Mastery-mu sekarang ${finalMastery}%!`);
+    setMascotMessage(`Hebat sekali! Latihan ${currentQuizStep.title} selesai! Pemahamanmu sekarang ${finalMastery}%!`);
     setMascotMood('happy');
   };
 
@@ -236,6 +238,7 @@ export function useLearningPathPage() {
     diagnosticExercises,
     practiceExercises,
     isFetchingExercises,
+    diagnosticNotice,
     currentStep,
     progressPercent,
     handleInitialQuestionsSubmit,
